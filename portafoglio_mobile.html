@@ -247,6 +247,7 @@ const CAMPI_EDIT=[
 // ── UTILS ──────────────────────────────────────────────────────────────
 const oggi=new Date("2026-03-29");
 // Valida e normalizza una stringa data — restituisce "YYYY-MM-DD" o ""
+// Il foglio usa sempre formato italiano DD/MM/YYYY
 function sanitizeDate(s){
   if(!s||s==="\\"||s==="/"||s==="\\\\") return "";
   s=s.trim();
@@ -256,7 +257,7 @@ function sanitizeDate(s){
     if(!isNaN(d)&&d.getFullYear()>=2020&&d.getFullYear()<=2040) return s;
     return "";
   }
-  // Formato DD/MM/YYYY
+  // Formato italiano DD/MM/YYYY (priorità assoluta)
   let m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
   if(m){
     const dy=parseInt(m[1]),mo=parseInt(m[2]),y=parseInt(m[3]);
@@ -264,15 +265,6 @@ function sanitizeDate(s){
       return `${y}-${String(mo).padStart(2,"0")}-${String(dy).padStart(2,"0")}`;
     return "";
   }
-  // Formato MM/DD/YYYY (Google Sheets in locale anglosassone)
-  m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  if(m){
-    const mo=parseInt(m[1]),dy=parseInt(m[2]),y=parseInt(m[3]);
-    if(y>=2020&&y<=2040&&mo>=1&&mo<=12&&dy>=1&&dy<=31)
-      return `${y}-${String(mo).padStart(2,"0")}-${String(dy).padStart(2,"0")}`;
-    return "";
-  }
-  // Formato D-MMM-YY o simili (es. "23-gen-26")
   // Formato YYYY/MM/DD
   m=s.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);
   if(m){
@@ -281,10 +273,13 @@ function sanitizeDate(s){
       return `${y}-${String(mo).padStart(2,"0")}-${String(dy).padStart(2,"0")}`;
     return "";
   }
-  // Prova con Date.parse come ultima risorsa
-  const d=new Date(s);
-  if(!isNaN(d)&&d.getFullYear()>=2020&&d.getFullYear()<=2040){
-    return d.toISOString().slice(0,10);
+  // Anno errato (es. 7/6/02026) — scarta
+  if(/\d{5,}/.test(s)) return "";
+  // Prova con Date.parse solo per formati ISO-like
+  if(/^\d{4}-/.test(s)){
+    const d=new Date(s);
+    if(!isNaN(d)&&d.getFullYear()>=2020&&d.getFullYear()<=2040)
+      return d.toISOString().slice(0,10);
   }
   return "";
 }
