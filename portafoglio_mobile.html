@@ -129,28 +129,34 @@ const isArr = r => (r.stato||"").toUpperCase()==="ARR" || (r.settore||"").toUppe
 const esc = s => String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 const fmtEur = v => v!=null&&v!==""? "€ "+parseFloat(v).toLocaleString("it-IT",{minimumFractionDigits:2}) : "—";
 
-// Converte data italiana DD/MM/YYYY in timestamp per ordinamento
-function dateVal(s) {
-  if (!s || typeof s !== "string") return Infinity;
+// Mappa mesi italiani abbreviati → inglese per Date.parse
+const MESI_IT = {gen:"Jan",feb:"Feb",mar:"Mar",apr:"Apr",mag:"May",giu:"Jun",lug:"Jul",ago:"Aug",set:"Sep",ott:"Oct",nov:"Nov",dic:"Dec"};
+
+function normalizeDate(s) {
+  if (!s || typeof s !== "string") return null;
   s = s.trim();
-  if (!s || s === "\\" || s === "/" || s.length < 6) return Infinity;
-  // DD/MM/YYYY
-  const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  if (m) {
-    const y = +m[3], mo = +m[2]-1, d = +m[1];
-    if (y >= 2000 && y <= 2040) return new Date(y,mo,d).getTime();
-  }
-  // YYYY-MM-DD
-  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return new Date(s).getTime();
-  return Infinity;
+  if (!s || s==="\\" || s==="/" || s.length<5) return null;
+  // Sostituisce mesi italiani con inglese (es. "1-apr-26" → "1-Apr-26")
+  s = s.replace(/\b(gen|feb|mar|apr|mag|giu|lug|ago|set|ott|nov|dic)\b/gi, m => MESI_IT[m.toLowerCase()]||m);
+  // DD/MM/YYYY → YYYY-MM-DD (Date.parse legge MM/DD/YYYY, non DD/MM/YYYY)
+  const mDMY = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (mDMY) s = `${mDMY[3]}-${mDMY[2].padStart(2,"0")}-${mDMY[1].padStart(2,"0")}`;
+  // Anno a 2 cifre (es. "26" → "2026")
+  s = s.replace(/-(\d{2})$/, (m,y) => "-20"+y);
+  const d = new Date(s);
+  if (!isNaN(d) && d.getFullYear()>=2000 && d.getFullYear()<=2040) return d;
+  return null;
+}
+
+function dateVal(s) {
+  const d = normalizeDate(s);
+  return d ? d.getTime() : Infinity;
 }
 
 function fmtShort(s) {
-  if (!s || s==="\\" || s==="/" || s.length<6) return "—";
-  const m = s.match(/^(\d{1,2})\/(\d{1,2})\//);
-  if (m) return m[1].padStart(2,"0")+"/"+m[2].padStart(2,"0");
-  if (s.length>=10 && s[4]==="-") return s.slice(8,10)+"/"+s.slice(5,7);
-  return "—";
+  const d = normalizeDate(s);
+  if (!d) return "—";
+  return String(d.getDate()).padStart(2,"0")+"/"+String(d.getMonth()+1).padStart(2,"0");
 }
 
 function parseCSV(text) {
