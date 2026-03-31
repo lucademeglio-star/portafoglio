@@ -7,107 +7,87 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Portafoglio">
 <meta name="theme-color" content="#080d1a">
-<title>🛡 Portafoglio</title>
+<title>Portafoglio</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;background:#080d1a;color:#e2e8f0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;overflow:hidden}
-::-webkit-scrollbar{width:3px;height:3px}
-::-webkit-scrollbar-thumb{background:rgba(59,130,246,.3);border-radius:9px}
-input::placeholder,textarea::placeholder{color:#334155}
-select option{background:#111e3a;color:#e2e8f0}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:rgba(59,130,246,.3);border-radius:9px}
+input::placeholder{color:#334155}select option{background:#111e3a;color:#e2e8f0}
 @keyframes spin{to{transform:rotate(360deg)}}
-@keyframes fadeIn{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
-
 #app{display:flex;flex-direction:column;height:100vh;height:100dvh}
-
-/* TOPBAR */
 #topbar{background:linear-gradient(160deg,#0c1830,#111e3a);border-bottom:1px solid rgba(59,130,246,.2);padding:8px 12px 0;flex-shrink:0}
-.top-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
+.top-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
 .logo{font-size:13px;font-weight:900;color:#f1f5f9}
 .source{font-size:8px;color:#475569;text-transform:uppercase;letter-spacing:.08em;margin-top:1px}
 .kpis{display:flex;gap:4px}
 .kpi{border-radius:6px;padding:4px 7px;text-align:center}
 .kpi-v{font-size:14px;font-weight:900;line-height:1}
 .kpi-l{font-size:7px;color:#475569;text-transform:uppercase;margin-top:1px}
-.k-red{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3)}
-.k-yel{background:rgba(234,179,8,.12);border:1px solid rgba(234,179,8,.3)}
-.k-grn{background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3)}
-.k-blu{background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.3)}
-.v-red{color:#ef4444}.v-yel{color:#eab308}.v-grn{color:#10b981}.v-blu{color:#60a5fa}
-.top-actions{display:flex;gap:5px;align-items:center}
-.refresh-btn{background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.25);border-radius:6px;padding:4px 8px;color:#6ee7b7;font-size:9px;font-weight:700;cursor:pointer}
+.k-red{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3)}.v-red{color:#ef4444}
+.k-grn{background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3)}.v-grn{color:#10b981}
+.k-blu{background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.3)}.v-blu{color:#60a5fa}
+.refresh-btn{background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.25);border-radius:6px;padding:5px 9px;color:#6ee7b7;font-size:10px;font-weight:700;cursor:pointer}
 .tabs{display:flex}
-.tab{flex:1;padding:7px 2px;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:#475569;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer}
+.tab{flex:1;padding:7px 2px;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;color:#475569;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer}
 .tab.active{color:#93c5fd;border-bottom:2px solid #3b82f6}
-
 #content{flex:1;overflow-y:auto;padding:8px 10px;-webkit-overflow-scrolling:touch}
-
-/* CARD RIGA */
-.row-card{border-radius:8px;padding:8px 10px;margin-bottom:5px;display:flex;align-items:center;gap:8px;animation:fadeIn .12s}
-.row-card-l{flex:1;min-width:0}
-.row-name{font-size:12px;font-weight:700;color:#93c5fd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-decoration:underline;text-decoration-color:rgba(147,197,253,.3);cursor:pointer}
-.row-sub{font-size:9px;color:#64748b;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.row-tags{margin-top:3px;display:flex;gap:3px;flex-wrap:wrap;align-items:center}
-.row-card-r{flex-shrink:0;text-align:right}
+/* TOOLBAR ORDINAMENTO */
+.sort-bar{display:flex;gap:5px;margin-bottom:8px;align-items:center}
+.sort-btn{padding:5px 12px;border-radius:16px;font-size:10px;font-weight:700;border:1px solid rgba(59,130,246,.2);background:rgba(20,32,60,.9);color:#64748b;cursor:pointer}
+.sort-btn.active{background:rgba(59,130,246,.3);border-color:#3b82f6;color:#93c5fd}
+.sort-dir{padding:5px 10px;border-radius:16px;font-size:10px;font-weight:700;border:1px solid rgba(59,130,246,.2);background:rgba(20,32,60,.9);color:#64748b;cursor:pointer;margin-left:auto}
+/* CARD */
+.card{border-radius:8px;padding:8px 10px;margin-bottom:5px;display:flex;align-items:center;gap:8px;background:rgba(20,32,60,.8);border:1px solid rgba(59,130,246,.1);border-left:3px solid #334155;cursor:pointer}
+.card.arr{background:rgba(249,115,22,.08);border-color:rgba(249,115,22,.22);border-left-color:#f97316}
+.card-l{flex:1;min-width:0}
+.card-name{font-size:12px;font-weight:700;color:#93c5fd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
+.card-sub{font-size:9px;color:#64748b;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card-tags{margin-top:3px;display:flex;gap:3px;flex-wrap:wrap;align-items:center}
+.card-r{flex-shrink:0;text-align:right}
 .badge{font-size:7px;font-weight:700;border-radius:3px;padding:2px 4px;display:inline-block}
 .arr-badge{font-size:7px;font-weight:800;color:#f97316;background:rgba(249,115,22,.2);border-radius:3px;padding:2px 5px}
 .imp-badge{font-size:7px;color:#64748b;padding:2px 4px;background:rgba(255,255,255,.05);border-radius:3px}
-.date-pill{font-size:9px;font-weight:800;border-radius:4px;padding:2px 6px;display:inline-block}
+.date-col{font-size:10px;font-weight:800;color:#94a3b8;text-align:right}
 .pol-num{font-size:8px;color:#334155;margin-top:2px;font-family:monospace}
-
-/* DATA SEPARATOR */
-.date-sep{font-size:9px;color:#475569;font-weight:700;padding:8px 2px 4px;letter-spacing:.06em;border-bottom:1px solid rgba(59,130,246,.08);margin-bottom:4px}
-
+/* SEARCH */
+.search-wrap{position:relative;margin-bottom:7px}
+.search-inp{width:100%;background:rgba(20,32,60,.9);border:1px solid rgba(59,130,246,.25);border-radius:8px;padding:8px 30px 8px 11px;color:#f1f5f9;font-size:13px;outline:none;font-family:inherit}
 /* CHIPS */
 .chip-bar{display:flex;gap:4px;margin-bottom:7px;overflow-x:auto;padding-bottom:2px}
 .chip{padding:4px 9px;border-radius:16px;font-size:9px;font-weight:700;background:rgba(20,32,60,.9);border:1px solid rgba(59,130,246,.15);color:#64748b;cursor:pointer;white-space:nowrap;flex-shrink:0}
 .chip.active{background:rgba(59,130,246,.3);border-color:#3b82f6;color:#93c5fd}
-
-/* SEARCH */
-.search-wrap{position:relative;margin-bottom:7px}
-.search-inp{width:100%;background:rgba(20,32,60,.9);border:1px solid rgba(59,130,246,.25);border-radius:8px;padding:8px 30px 8px 11px;color:#f1f5f9;font-size:13px;outline:none;font-family:inherit}
-.search-icon{position:absolute;right:10px;top:50%;transform:translateY(-50%);color:#475569}
-
-/* CLIENTE OVERLAY */
-.overlay{position:fixed;inset:0;background:#080d1a;z-index:100;display:flex;flex-direction:column;animation:fadeIn .15s}
+/* OVERLAY CLIENTE */
+.overlay{position:fixed;inset:0;background:#080d1a;z-index:100;display:flex;flex-direction:column}
 .ov-hdr{background:linear-gradient(160deg,#0c1830,#111e3a);border-bottom:1px solid rgba(59,130,246,.2);padding:10px 12px;display:flex;align-items:center;gap:8px;flex-shrink:0}
 .ov-title{font-size:13px;font-weight:800;color:#f1f5f9;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ov-body{flex:1;overflow-y:auto;padding:10px 12px;-webkit-overflow-scrolling:touch}
-
-/* POLIZZA CARD nel cliente */
-.pol-card{background:rgba(20,32,60,.8);border:1px solid rgba(59,130,246,.12);border-radius:8px;padding:10px 12px;margin-bottom:8px}
+.pol-card{background:rgba(20,32,60,.8);border:1px solid rgba(59,130,246,.1);border-radius:8px;padding:10px;margin-bottom:8px}
 .pol-card.arr{border-left:3px solid #f97316;background:rgba(249,115,22,.07)}
-.pol-card-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-.pol-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.pol-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:6px}
 .pol-cell{background:rgba(10,15,26,.4);border-radius:5px;padding:5px 7px}
 .pol-lbl{font-size:7px;color:#475569;text-transform:uppercase;letter-spacing:.07em;margin-bottom:1px}
-.pol-val{font-size:10px;font-weight:600;color:#e2e8f0;word-break:break-word}
+.pol-val{font-size:10px;font-weight:600;color:#e2e8f0;word-break:break-all}
 .note-box{background:rgba(234,179,8,.07);border:1px solid rgba(234,179,8,.2);border-radius:6px;padding:6px 8px;margin-top:6px}
-.note-lbl{font-size:7px;color:#ca8a04;text-transform:uppercase;letter-spacing:.07em;margin-bottom:1px}
+.note-lbl{font-size:7px;color:#ca8a04;text-transform:uppercase;margin-bottom:1px}
 .note-val{font-size:10px;color:#fde047}
-
 /* EDIT */
-.edit-overlay{position:fixed;inset:0;background:rgba(5,8,18,.98);z-index:200;display:flex;flex-direction:column;animation:fadeIn .15s}
+.edit-ov{position:fixed;inset:0;background:rgba(5,8,18,.98);z-index:200;display:flex;flex-direction:column}
 .edit-group{margin-bottom:11px}
 .edit-lbl{font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;font-weight:700;display:block}
 .edit-inp,.edit-sel,.edit-txt{width:100%;background:rgba(20,32,60,.9);border:1px solid rgba(59,130,246,.3);border-radius:7px;padding:9px 11px;color:#f1f5f9;font-size:14px;outline:none;font-family:inherit}
 .edit-txt{resize:vertical;min-height:56px}
 .edit-info{font-size:9px;color:#6ee7b7;padding:6px 9px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:6px;margin-bottom:11px}
-
 /* TOTALI */
 .tot-grand{background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);border-radius:8px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
 .tot-box{background:rgba(20,32,60,.8);border:1px solid rgba(59,130,246,.1);border-radius:8px;padding:9px 11px;margin-bottom:8px}
 .tot-hdr{font-size:8px;color:#475569;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px;font-weight:700}
-.tot-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(59,130,246,.06)}
+.tot-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(59,130,246,.06)}
 .tot-row:last-child{border-bottom:none}
-.tot-lbl{font-size:10px;color:#94a3b8}
-.tot-val{font-size:10px;font-weight:800;color:#60a5fa}
-
+.tot-lbl{font-size:10px;color:#94a3b8}.tot-val{font-size:10px;font-weight:800;color:#60a5fa}
 /* BTN */
 .btn-p{background:linear-gradient(135deg,#1d4ed8,#2563eb);border:none;border-radius:7px;padding:8px 13px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0}
 .btn-s{background:rgba(20,32,60,.9);border:1px solid rgba(59,130,246,.3);border-radius:7px;padding:8px 12px;color:#93c5fd;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0}
 .btn-g{background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.3);border-radius:7px;padding:8px 12px;color:#6ee7b7;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0}
-
 .saving-ov{position:fixed;inset:0;background:rgba(5,8,18,.7);z-index:500;display:flex;align-items:center;justify-content:center}
 .saving-box{background:#111e3a;border:1px solid rgba(59,130,246,.3);border-radius:11px;padding:20px 26px;text-align:center}
 .spinner{width:30px;height:30px;border:3px solid rgba(59,130,246,.2);border-top-color:#3b82f6;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 9px}
@@ -115,27 +95,17 @@ select option{background:#111e3a;color:#e2e8f0}
 #loading{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;gap:11px}
 .sec-label{font-size:8px;color:#475569;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;font-weight:700}
 .empty{text-align:center;padding:32px 16px;color:#475569}
-.empty-icon{font-size:26px;margin-bottom:7px}
 </style>
 </head>
 <body>
-
-<div id="loading">
-  <div class="spinner"></div>
-  <div style="font-size:11px;color:#475569">Caricamento…</div>
-</div>
-
+<div id="loading"><div class="spinner"></div><div style="font-size:11px;color:#475569">Caricamento…</div></div>
 <div id="app" style="display:none">
   <div id="topbar">
     <div class="top-row">
-      <div>
-        <div class="logo">🛡 Portafoglio</div>
-        <div class="source" id="src-lbl">…</div>
-      </div>
-      <div class="top-actions">
+      <div><div class="logo">🛡 Portafoglio</div><div class="source" id="src-lbl">…</div></div>
+      <div style="display:flex;gap:5px;align-items:center">
         <div class="kpis">
           <div class="kpi k-red"><div class="kpi-v v-red" id="k-arr">0</div><div class="kpi-l">ARR</div></div>
-          <div class="kpi k-yel"><div class="kpi-v v-yel" id="k-scad">0</div><div class="kpi-l">Scad</div></div>
           <div class="kpi k-grn"><div class="kpi-v v-grn" id="k-att">0</div><div class="kpi-l">Attive</div></div>
           <div class="kpi k-blu"><div class="kpi-v v-blu" id="k-tot">0</div><div class="kpi-l">Tot</div></div>
         </div>
@@ -143,7 +113,7 @@ select option{background:#111e3a;color:#e2e8f0}
       </div>
     </div>
     <div class="tabs">
-      <button class="tab active" id="tab-scad" onclick="setTab('scad')">📅 Scadenze</button>
+      <button class="tab active" id="tab-lista" onclick="setTab('lista')">📋 Lista</button>
       <button class="tab" id="tab-arr" onclick="setTab('arr')">🔴 Arretrati</button>
       <button class="tab" id="tab-cerca" onclick="setTab('cerca')">🔍 Cerca</button>
       <button class="tab" id="tab-tot" onclick="setTab('tot')">📊 Totali</button>
@@ -152,7 +122,6 @@ select option{background:#111e3a;color:#e2e8f0}
   <div id="content"></div>
 </div>
 
-<!-- CLIENTE OVERLAY -->
 <div class="overlay" id="cli-ov" style="display:none">
   <div class="ov-hdr">
     <button class="btn-s" onclick="closeCli()">← Torna</button>
@@ -161,8 +130,7 @@ select option{background:#111e3a;color:#e2e8f0}
   <div class="ov-body" id="cli-body"></div>
 </div>
 
-<!-- EDIT OVERLAY -->
-<div class="edit-overlay" id="edit-ov" style="display:none">
+<div class="edit-ov" id="edit-ov" style="display:none">
   <div class="ov-hdr">
     <button class="btn-s" onclick="closeEdit()">✕</button>
     <div class="ov-title" id="edit-title"></div>
@@ -191,6 +159,46 @@ async function decompressFallback(){
 }
 
 const CSV_COLS=["contraente","ramo","polizza","scad","todo","importo","rinn","fr","settore","stato","targa","settori","nota1","nota2","capo","rami","indirizzo","citta","cell","email","tipolCli","sub","cf"];
+
+// Converte qualsiasi stringa data in oggetto Date o null
+// Accetta: DD/MM/YYYY, YYYY-MM-DD, YYYY/MM/DD
+function parseDate(s){
+  if(!s||typeof s!=="string") return null;
+  s=s.trim();
+  if(!s||s==="\"||s==="/"||s.length<6) return null;
+  // YYYY-MM-DD
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s)){const d=new Date(s);return isNaN(d)?null:d;}
+  // DD/MM/YYYY — formato italiano
+  const m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if(m){
+    const d=new Date(parseInt(m[3]),parseInt(m[2])-1,parseInt(m[1]));
+    if(!isNaN(d)&&d.getFullYear()>=2000&&d.getFullYear()<=2040) return d;
+  }
+  // YYYY/MM/DD
+  const m2=s.match(/^(\d{4})\/(\d{2})\/(\d{2})$/);
+  if(m2){const d=new Date(parseInt(m2[1]),parseInt(m2[2])-1,parseInt(m2[3]));return isNaN(d)?null:d;}
+  return null;
+}
+
+// Formatta data per display
+function fmtDate(s){
+  const d=parseDate(s);
+  if(!d) return s||"—"; // mostra il valore grezzo se non parsabile
+  return String(d.getDate()).padStart(2,"0")+"/"+String(d.getMonth()+1).padStart(2,"0")+"/"+d.getFullYear();
+}
+
+function fmtShort(s){
+  const d=parseDate(s);
+  if(!d) return s?s.slice(0,5):"—";
+  return String(d.getDate()).padStart(2,"0")+"/"+String(d.getMonth()+1).padStart(2,"0");
+}
+
+// Valore numerico per ordinamento (ms da epoch, o Infinity se non parsabile)
+function dateVal(s){
+  const d=parseDate(s);
+  return d?d.getTime():Infinity;
+}
+
 function parseCSV(text){
   const lines=text.trim().split("\n");
   if(lines.length<2)return[];
@@ -205,26 +213,25 @@ function parseCSV(text){
     cols.push(cur.trim());
     const r={id:idx+2};
     CSV_COLS.forEach((k,i)=>{r[k]=(cols[i]||"").replace(/^"|"$/g,"").trim();});
-    // Sanifica le date
-    r.scad = sanitizeDate(r.scad);
-    r.todo = sanitizeDate(r.todo);
     r.importo=r.importo?parseFloat(r.importo.replace(",","."))||null:null;
     return r;
-  }).filter(r=>r.contraente&&r.contraente.trim()!==""&&r.contraente!=="\\"&&r.contraente!=="\\\\");
+  }).filter(r=>r.contraente&&r.contraente.trim()&&r.contraente!=="\"&&r.contraente!=="\\");
 }
+
 async function loadFromSheets(url){
   const res=await fetch(url,{cache:"no-cache"});
   if(!res.ok)throw new Error("HTTP "+res.status);
   return parseCSV(await res.text());
 }
 
-// ── STATO ──────────────────────────────────────────────────────────────
+// STATO
 let records=[];
-let curTab="scad";
+let curTab="lista";
 let searchQ="";
 let filtriSett=[];
 let filtriStato=[];
-let filtroUrgScad="";
+let sortField="todo"; // "todo" | "scad"
+let sortDir="asc";
 let curEditId=null;
 
 const SETTORI=["RCA","INFORTUNI","RCG","RDP","FURTO","ARRETRATO","SCREENING","#SALUTE","IRO","IMP","INF","VITA","VITA INDIVIDUALI","VITA-FONDI","TCM","CASA","CAT NAT","CAUZIONI","TRASPORTI","FAMIGLIA","DOC","MAL","MALATTIE","CVT","TOP","VARI","►PROVV"];
@@ -232,10 +239,10 @@ const STATI=["ATTIVA","SCHEDA","PROSPETTIVA","RECUPERO","ARR","SOSPESA","DOCUMEN
 const CAMPI_EDIT=[
   {key:"stato",label:"Stato",type:"select",opts:STATI},
   {key:"settore",label:"Settore",type:"select",opts:SETTORI},
-  {key:"todo",label:"TO-DO",type:"date"},
-  {key:"scad",label:"Scadenza",type:"date"},
+  {key:"todo",label:"TO-DO",type:"text",ph:"GG/MM/AAAA"},
+  {key:"scad",label:"Scadenza",type:"text",ph:"GG/MM/AAAA"},
   {key:"importo",label:"Importo (€)",type:"number"},
-  {key:"rinn",label:"Rinnovo (S/N)",type:"select",opts:["","S","N"]},
+  {key:"rinn",label:"Rinnovo",type:"select",opts:["","S","N"]},
   {key:"fr",label:"Frazionamento",type:"text"},
   {key:"targa",label:"Targa",type:"text"},
   {key:"nota1",label:"Nota 1",type:"textarea"},
@@ -244,69 +251,13 @@ const CAMPI_EDIT=[
   {key:"email",label:"Email",type:"text"},
 ];
 
-// ── UTILS ──────────────────────────────────────────────────────────────
-const oggi=new Date("2026-03-29");
-// Valida e normalizza una stringa data — restituisce "YYYY-MM-DD" o ""
-// Il foglio usa sempre formato italiano DD/MM/YYYY
-function sanitizeDate(s){
-  if(!s||s==="\\"||s==="/"||s==="\\\\") return "";
-  s=s.trim();
-  // Già formato ISO YYYY-MM-DD
-  if(/^\d{4}-\d{2}-\d{2}$/.test(s)){
-    const d=new Date(s);
-    if(!isNaN(d)&&d.getFullYear()>=2020&&d.getFullYear()<=2040) return s;
-    return "";
-  }
-  // Formato italiano DD/MM/YYYY (priorità assoluta)
-  let m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  if(m){
-    const dy=parseInt(m[1]),mo=parseInt(m[2]),y=parseInt(m[3]);
-    if(y>=2020&&y<=2040&&mo>=1&&mo<=12&&dy>=1&&dy<=31)
-      return `${y}-${String(mo).padStart(2,"0")}-${String(dy).padStart(2,"0")}`;
-    return "";
-  }
-  // Formato YYYY/MM/DD
-  m=s.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);
-  if(m){
-    const y=parseInt(m[1]),mo=parseInt(m[2]),dy=parseInt(m[3]);
-    if(y>=2020&&y<=2040&&mo>=1&&mo<=12&&dy>=1&&dy<=31)
-      return `${y}-${String(mo).padStart(2,"0")}-${String(dy).padStart(2,"0")}`;
-    return "";
-  }
-  // Anno errato (es. 7/6/02026) — scarta
-  if(/\d{5,}/.test(s)) return "";
-  // Prova con Date.parse solo per formati ISO-like
-  if(/^\d{4}-/.test(s)){
-    const d=new Date(s);
-    if(!isNaN(d)&&d.getFullYear()>=2020&&d.getFullYear()<=2040)
-      return d.toISOString().slice(0,10);
-  }
-  return "";
-}
-
-const diffDays=ds=>{if(!ds)return 9999;return Math.round((new Date(ds)-oggi)/86400000);};
-const fmtS=ds=>{if(!ds)return"—";const d=new Date(ds);return String(d.getDate()).padStart(2,"0")+"/"+String(d.getMonth()+1).padStart(2,"0");};
-const fmtF=ds=>ds?new Date(ds).toLocaleDateString("it-IT"):"—";
-const toInp=ds=>(ds&&ds.length===10)?ds:"";
-const fmtEur=v=>v!=null&&v!==""?`€ ${parseFloat(v).toLocaleString("it-IT",{minimumFractionDigits:2})}`:"—";
-const urgClass=todo=>{
-  const g=diffDays(todo);
-  if(g<0)return"scaduta";if(g<=7)return"urgente";
-  if(g<=30)return"prossima";if(g<=60)return"in_vista";return"ok";
-};
-const URG={
-  scaduta:{lb:"#ef4444",txt:"#fca5a5",tbg:"rgba(239,68,68,.15)",bg:"rgba(239,68,68,.1)",border:"rgba(239,68,68,.28)"},
-  urgente:{lb:"#f97316",txt:"#fdba74",tbg:"rgba(249,115,22,.15)",bg:"rgba(249,115,22,.07)",border:"rgba(249,115,22,.22)"},
-  prossima:{lb:"#eab308",txt:"#fde047",tbg:"rgba(234,179,8,.15)",bg:"rgba(20,32,60,.75)",border:"rgba(59,130,246,.12)"},
-  in_vista:{lb:"#22c55e",txt:"#86efac",tbg:"rgba(34,197,94,.12)",bg:"rgba(20,32,60,.75)",border:"rgba(59,130,246,.12)"},
-  ok:{lb:"#334155",txt:"#94a3b8",tbg:"transparent",bg:"rgba(20,32,60,.75)",border:"rgba(59,130,246,.1)"},
-};
 const STATO_COL={ATTIVA:"#10b981",SCHEDA:"#3b82f6",PROSPETTIVA:"#a78bfa",RECUPERO:"#f59e0b",ARR:"#ef4444",SOSPESA:"#6b7280",DOCUMENTI:"#06b6d4",BDA:"#8b5cf6"};
 const sCol=s=>STATO_COL[s]||"#6b7280";
 const isArr=r=>(r.stato||"").toUpperCase()==="ARR"||(r.settore||"").toUpperCase()==="ARRETRATO";
 const esc=s=>String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+const fmtEur=v=>v!=null&&v!==""?`€ ${parseFloat(v).toLocaleString("it-IT",{minimumFractionDigits:2})}`:"—";
 
-// ── LOAD ───────────────────────────────────────────────────────────────
+// LOAD
 async function loadData(){
   document.getElementById("loading").style.display="flex";
   document.getElementById("app").style.display="none";
@@ -328,12 +279,11 @@ async function doRefresh(){
 }
 function updateKPIs(){
   document.getElementById("k-arr").textContent=records.filter(r=>isArr(r)).length;
-  document.getElementById("k-scad").textContent=records.filter(r=>{const g=diffDays(r.todo);return g>=-1&&g<=30;}).length;
   document.getElementById("k-att").textContent=records.filter(r=>r.stato==="ATTIVA").length;
   document.getElementById("k-tot").textContent=records.length;
 }
 
-// ── TABS ───────────────────────────────────────────────────────────────
+// TABS
 function setTab(t){
   curTab=t;
   document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));
@@ -342,99 +292,85 @@ function setTab(t){
   renderTab();
 }
 function renderTab(){
-  if(curTab==="scad")renderScad();
+  if(curTab==="lista")renderLista();
   else if(curTab==="arr")renderArr();
   else if(curTab==="cerca")renderCerca();
   else renderTot();
 }
 
-// ── ROW CARD HTML ──────────────────────────────────────────────────────
-function rowCardHtml(r){
+// CARD
+function cardHtml(r){
   const arr=isArr(r);
-  const u=urgClass(r.todo),cfg=URG[u];
-  const bg=arr?`background:rgba(249,115,22,.08);border:1px solid rgba(249,115,22,.22);border-left:3px solid #f97316`
-              :`background:${cfg.bg};border:1px solid ${cfg.border};border-left:3px solid ${cfg.lb}`;
-  const arrBadge=arr?`<span class="arr-badge">ARR</span>`:"";
+  const arrBadge=arr?`<span class="arr-badge">ARR</span> `:"";
   const statoBadge=`<span class="badge" style="color:${sCol(r.stato)};background:${sCol(r.stato)}22">${esc(r.stato||"—")}</span>`;
   const imp=r.importo?`<span class="imp-badge">€${parseFloat(r.importo).toLocaleString("it-IT")}</span>`:"";
   const sub=[r.settore,r.targa].filter(Boolean).join(" · ");
-  const pill=`<div class="date-pill" style="color:${arr?"#fdba74":cfg.txt};background:${arr?"rgba(249,115,22,.15)":cfg.tbg}">${fmtS(r.todo)}</div>`;
+  const dateDisplay=sortField==="scad"?fmtShort(r.scad):fmtShort(r.todo);
   const pol=r.polizza?`<div class="pol-num">${String(r.polizza).slice(-6)}</div>`:"";
-  return `<div class="row-card" style="${bg}">
-    <div class="row-card-l">
-      <div class="row-name" onclick="openCli('${esc(r.contraente)}')">${arrBadge}${esc(r.contraente||"—")}</div>
-      <div class="row-sub">${esc(sub)}</div>
-      <div class="row-tags">${statoBadge}${imp}</div>
+  return `<div class="card${arr?" arr":""}">
+    <div class="card-l">
+      <div class="card-name" onclick="openCli('${esc(r.contraente)}')">${arrBadge}${esc(r.contraente||"—")}</div>
+      <div class="card-sub">${esc(sub)}</div>
+      <div class="card-tags">${statoBadge}${imp}</div>
     </div>
-    <div class="row-card-r">${pill}${pol}</div>
+    <div class="card-r">
+      <div class="date-col">${dateDisplay}</div>
+      ${pol}
+    </div>
   </div>`;
 }
 
-// ── TAB SCADENZE — lista cronologica pura ──────────────────────────────
-let scadDir = "asc"; // asc = prima i più vecchi, desc = prima i più recenti
-
-function renderScad(){
-  const chips=[["","Tutte"],["scaduta","🔴"],["urgente","🟠 ≤7"],["prossima","🟡 ≤30"],["in_vista","🟢 ≤60"]];
-  let html=`<div class="chip-bar">
-    ${chips.map(([v,l])=>`<span class="chip${filtroUrgScad===v?" active":""}" onclick="setUrgScad('${v}')">${l}</span>`).join("")}
-    <span class="chip${scadDir==="asc"?" active":""}" onclick="toggleScadDir()" style="margin-left:auto">
-      ${scadDir==="asc"?"↑ Vecchie prima":"↓ Recenti prima"}
-    </span>
+// TAB LISTA — tutto, ordinabile per SCAD o TODO
+function renderLista(){
+  let html=`<div class="sort-bar">
+    <span class="sort-btn${sortField==="todo"?" active":""}" onclick="setSortField('todo')">TO-DO</span>
+    <span class="sort-btn${sortField==="scad"?" active":""}" onclick="setSortField('scad')">SCAD</span>
+    <span class="sort-dir" onclick="toggleDir()">${sortDir==="asc"?"↑ Vecchie":"↓ Recenti"}</span>
   </div>`;
 
+  const campo=sortField==="scad"?"scad":"todo";
   let lista=[...records].sort((a,b)=>{
-    if(!a.todo && !b.todo) return (a.contraente||"").localeCompare(b.contraente||"");
-    if(!a.todo) return 1;
-    if(!b.todo) return -1;
-    const da=diffDays(a.todo),db=diffDays(b.todo);
-    const cmp = da!==db ? da-db : (a.contraente||"").localeCompare(b.contraente||"");
-    return scadDir==="asc" ? cmp : -cmp;
+    const va=dateVal(a[campo]),vb=dateVal(b[campo]);
+    if(va===Infinity&&vb===Infinity)return(a.contraente||"").localeCompare(b.contraente||"");
+    if(va===Infinity)return 1;
+    if(vb===Infinity)return -1;
+    const cmp=va-vb;
+    return sortDir==="asc"?cmp:-cmp;
   });
 
-  if(filtroUrgScad) lista=lista.filter(r=>urgClass(r.todo)===filtroUrgScad);
-
-  html+=`<div class="sec-label">${lista.length} righe · ordine TO-DO · in fondo senza data</div>`;
-
-  if(lista.length===0){html+=`<div class="empty"><div class="empty-icon">✅</div>Nessuna riga</div>`;}
-  else{
-    // Raggruppa per data per mostrare separatore
-    let lastDate="";
-    lista.forEach(r=>{
-      const d=r.todo||"";
-      if(d!==lastDate){
-        const g=diffDays(d);
-        const label=g<0?`⚠ ${fmtF(d)} (${Math.abs(g)}gg fa)`:g===0?`📌 OGGI ${fmtF(d)}`:`📅 ${fmtF(d)} (tra ${g}gg)`;
-        html+=`<div class="date-sep">${label}</div>`;
-        lastDate=d;
-      }
-      html+=rowCardHtml(r);
-    });
-  }
+  html+=`<div class="sec-label">${lista.length} righe · ${sortField==="scad"?"per SCAD":"per TO-DO"} ${sortDir==="asc"?"↑":"↓"}</div>`;
+  html+=lista.map(r=>cardHtml(r)).join("");
   document.getElementById("content").innerHTML=html;
 }
-function setUrgScad(v){filtroUrgScad=filtroUrgScad===v?"":v;renderScad();}
-function toggleScadDir(){scadDir=scadDir==="asc"?"desc":"asc";renderScad();}
 
-// ── TAB ARRETRATI ──────────────────────────────────────────────────────
+function setSortField(f){sortField=f;renderLista();}
+function toggleDir(){sortDir=sortDir==="asc"?"desc":"asc";renderLista();}
+
+// TAB ARRETRATI
 function renderArr(){
-  const lista=records.filter(r=>isArr(r)).sort((a,b)=>diffDays(a.todo)-diffDays(b.todo));
+  const campo=sortField==="scad"?"scad":"todo";
+  const lista=[...records].filter(r=>isArr(r)).sort((a,b)=>{
+    const va=dateVal(a[campo]),vb=dateVal(b[campo]);
+    return va-vb;
+  });
   let html=`<div class="sec-label">🔴 ${lista.length} arretrati</div>`;
-  if(lista.length===0)html+=`<div class="empty"><div class="empty-icon">✅</div>Nessun arretrato</div>`;
-  else html+=lista.map(r=>rowCardHtml(r)).join("");
+  html+=lista.length===0?`<div class="empty">✅ Nessun arretrato</div>`:lista.map(r=>cardHtml(r)).join("");
   document.getElementById("content").innerHTML=html;
 }
 
-// ── TAB CERCA ──────────────────────────────────────────────────────────
+// TAB CERCA
 function renderCerca(){
   const el=document.getElementById("content");
   if(!document.getElementById("search-inp")){
     el.innerHTML=`
       <div class="search-wrap">
         <input class="search-inp" id="search-inp" placeholder="Contraente, targa, polizza, CF…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-        <span class="search-icon">🔍</span>
+        <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:#475569">🔍</span>
       </div>
-      <div style="margin-bottom:4px"><div class="sec-label">Settore</div><div class="chip-bar" id="chips-sett"></div></div>
-      <div style="margin-bottom:7px"><div class="sec-label">Stato</div><div class="chip-bar" id="chips-stato"></div></div>
+      <div class="sec-label" style="margin-bottom:3px">Settore</div>
+      <div class="chip-bar" id="chips-sett"></div>
+      <div class="sec-label" style="margin-bottom:3px">Stato</div>
+      <div class="chip-bar" id="chips-stato"></div>
       <div id="cerca-ris"></div>`;
     document.getElementById("search-inp").addEventListener("input",function(){searchQ=this.value;renderCercaRis();});
     renderCercaChips();
@@ -450,24 +386,21 @@ function renderCercaChips(){
 }
 function togSett(v){filtriSett=filtriSett.includes(v)?filtriSett.filter(x=>x!==v):[...filtriSett,v];renderCercaChips();renderCercaRis();}
 function togStat(v){filtriStato=filtriStato.includes(v)?filtriStato.filter(x=>x!==v):[...filtriStato,v];renderCercaChips();renderCercaRis();}
-
 function renderCercaRis(){
-  const ris=document.getElementById("cerca-ris");
-  if(!ris)return;
+  const ris=document.getElementById("cerca-ris");if(!ris)return;
   const q=searchQ;
   let res=[...records];
   if(q){const t=q.toLowerCase();res=res.filter(r=>(r.contraente||"").toLowerCase().includes(t)||(r.polizza||"").toLowerCase().includes(t)||(r.targa||"").toLowerCase().includes(t)||(r.cf||"").toLowerCase().includes(t)||(r.citta||"").toLowerCase().includes(t)||(r.nota1||"").toLowerCase().includes(t));}
   if(filtriSett.length>0)res=res.filter(r=>filtriSett.includes(r.settore));
   if(filtriStato.length>0)res=res.filter(r=>filtriStato.includes(r.stato));
-  if(!q&&filtriSett.length===0&&filtriStato.length===0){ris.innerHTML=`<div class="empty"><div class="empty-icon">👆</div><div style="font-size:10px">Scrivi o seleziona filtri</div></div>`;return;}
-  res=res.sort((a,b)=>diffDays(a.todo)-diffDays(b.todo));
+  if(!q&&!filtriSett.length&&!filtriStato.length){ris.innerHTML=`<div class="empty">👆 Scrivi o seleziona filtri</div>`;return;}
+  res.sort((a,b)=>dateVal(a.todo)-dateVal(b.todo));
   let html=`<div class="sec-label">${res.length} risultati</div>`;
-  if(res.length===0)html+=`<div class="empty"><div class="empty-icon">🔍</div>Nessun risultato</div>`;
-  else html+=res.map(r=>rowCardHtml(r)).join("");
+  html+=res.length===0?`<div class="empty">🔍 Nessun risultato</div>`:res.map(r=>cardHtml(r)).join("");
   ris.innerHTML=html;
 }
 
-// ── TAB TOTALI ─────────────────────────────────────────────────────────
+// TAB TOTALI
 function renderTot(){
   const attive=records.filter(r=>!isArr(r));
   const tot=attive.reduce((s,r)=>s+(parseFloat(r.importo)||0),0);
@@ -483,43 +416,28 @@ function renderTot(){
       <div><div style="font-size:9px;color:#64748b;font-weight:700;text-transform:uppercase">Totale portafoglio</div><div style="font-size:8px;color:#475569">${attive.length} polizze</div></div>
       <div style="font-size:16px;font-weight:900;color:#60a5fa">${fmtEur(tot)}</div>
     </div>
-    <div class="tot-box">
-      <div class="tot-hdr">Per settore</div>
-      ${sOrd.length===0?`<div style="font-size:9px;color:#475569">Nessun importo</div>`:sOrd.map(([s,v])=>`<div class="tot-row"><span class="tot-lbl">${esc(s)}</span><span class="tot-val">${fmtEur(v)}</span></div>`).join("")}
-    </div>
-    <div class="tot-box">
-      <div class="tot-hdr">Per ramo (codice)</div>
-      ${rOrd.length===0?`<div style="font-size:9px;color:#475569">Nessun importo</div>`:rOrd.map(([s,v])=>`<div class="tot-row"><span class="tot-lbl">${esc(s)}</span><span class="tot-val">${fmtEur(v)}</span></div>`).join("")}
-    </div>`;
+    <div class="tot-box"><div class="tot-hdr">Per settore</div>${sOrd.map(([s,v])=>`<div class="tot-row"><span class="tot-lbl">${esc(s)}</span><span class="tot-val">${fmtEur(v)}</span></div>`).join("")}</div>
+    <div class="tot-box"><div class="tot-hdr">Per ramo</div>${rOrd.map(([s,v])=>`<div class="tot-row"><span class="tot-lbl">${esc(s)}</span><span class="tot-val">${fmtEur(v)}</span></div>`).join("")}</div>`;
   document.getElementById("content").innerHTML=html;
 }
 
-// ── CLIENTE OVERLAY ────────────────────────────────────────────────────
+// CLIENTE OVERLAY
 function openCli(nome){
-  const righe=records.filter(r=>r.contraente===nome)
-    .sort((a,b)=>(isArr(b)?1:0)-(isArr(a)?1:0)||diffDays(a.todo)-diffDays(b.todo));
+  const righe=[...records].filter(r=>r.contraente===nome)
+    .sort((a,b)=>(isArr(b)?1:0)-(isArr(a)?1:0)||dateVal(a.todo)-dateVal(b.todo));
   document.getElementById("cli-title").textContent="👤 "+nome;
-  let html=`<div class="sec-label">${righe.length} righe per questo cliente</div>`;
+  let html=`<div class="sec-label">${righe.length} righe</div>`;
   righe.forEach(r=>{
     const arr=isArr(r);
-    const u=urgClass(r.todo),cfg=URG[u];
-    const campi=[
-      ["TO-DO",fmtF(r.todo)],["Scadenza",fmtF(r.scad)],
-      ["Settore",r.settore],["Ramo",r.ramo],["Polizza",r.polizza],
-      ["Importo",fmtEur(r.importo)],["Stato",r.stato],
-      ["Targa",r.targa],["Rinnovo",r.rinn],["Fraz.",r.fr],
-    ].filter(([,v])=>v&&v!=="—"&&v!=="null");
+    const campi=[["TO-DO",fmtDate(r.todo)],["Scadenza",fmtDate(r.scad)],["Settore",r.settore],["Ramo",r.ramo],["Polizza",r.polizza],["Importo",fmtEur(r.importo)],["Stato",r.stato],["Targa",r.targa],["Rinnovo",r.rinn],["Fraz.",r.fr]].filter(([,v])=>v&&v!=="—");
     html+=`<div class="pol-card${arr?" arr":""}">
-      <div class="pol-card-hdr">
+      <div style="display:flex;justify-content:space-between;align-items:center">
         <div style="display:flex;gap:5px;align-items:center">
-          ${arr?`<span class="arr-badge">ARRETRATO</span>`:""}
+          ${arr?`<span class="arr-badge">ARR</span>`:""}
           <span class="badge" style="color:${sCol(r.stato)};background:${sCol(r.stato)}22;font-size:8px;padding:2px 6px">${esc(r.stato||"—")}</span>
           ${r.settore?`<span style="font-size:8px;color:#64748b">${esc(r.settore)}</span>`:""}
         </div>
-        <div>
-          <span class="date-pill" style="color:${arr?"#fdba74":cfg.txt};background:${arr?"rgba(249,115,22,.15)":cfg.tbg};font-size:8px">${fmtF(r.todo)}</span>
-          <button class="btn-p" style="margin-left:5px;padding:4px 8px;font-size:9px" onclick="openEdit(${r.id})">✏️</button>
-        </div>
+        <button class="btn-p" style="padding:4px 8px;font-size:9px" onclick="openEdit(${r.id})">✏️</button>
       </div>
       <div class="pol-grid">${campi.map(([l,v])=>`<div class="pol-cell"><div class="pol-lbl">${l}</div><div class="pol-val">${esc(v||"—")}</div></div>`).join("")}</div>
       ${r.nota1?`<div class="note-box"><div class="note-lbl">Nota 1</div><div class="note-val">${esc(r.nota1)}</div></div>`:""}
@@ -531,35 +449,30 @@ function openCli(nome){
 }
 function closeCli(){document.getElementById("cli-ov").style.display="none";}
 
-// ── EDIT ───────────────────────────────────────────────────────────────
+// EDIT
 function openEdit(id){
-  const r=records.find(x=>x.id===id);
-  if(!r)return;
+  const r=records.find(x=>x.id===id);if(!r)return;
   curEditId=id;
   document.getElementById("edit-title").textContent=r.contraente;
   let html=`<div class="edit-info">✅ Modifica diretta su Google Sheets</div>`;
-  CAMPI_EDIT.forEach(({key,label,type,opts})=>{
+  CAMPI_EDIT.forEach(({key,label,type,opts,ph})=>{
     const val=r[key]||"";
     html+=`<div class="edit-group"><label class="edit-lbl">${label}</label>`;
     if(type==="select")html+=`<select class="edit-sel" id="ef-${key}"><option value=""></option>${opts.map(o=>`<option value="${esc(o)}"${o===val?" selected":""}>${esc(o)||"—"}</option>`).join("")}</select>`;
-    else if(type==="date")html+=`<input type="date" class="edit-inp" id="ef-${key}" value="${toInp(val)}">`;
-    else if(type==="number")html+=`<input type="number" step="0.01" class="edit-inp" id="ef-${key}" value="${val}">`;
     else if(type==="textarea")html+=`<textarea class="edit-txt" id="ef-${key}">${esc(val)}</textarea>`;
-    else html+=`<input type="text" class="edit-inp" id="ef-${key}" value="${esc(val)}">`;
+    else if(type==="number")html+=`<input type="number" step="0.01" class="edit-inp" id="ef-${key}" value="${val}">`;
+    else html+=`<input type="text" class="edit-inp" id="ef-${key}" value="${esc(val)}" placeholder="${ph||""}">`;
     html+="</div>";
   });
   document.getElementById("edit-body").innerHTML=html;
   document.getElementById("edit-ov").style.display="flex";
 }
 function closeEdit(){document.getElementById("edit-ov").style.display="none";curEditId=null;}
-
 async function saveEdit(){
-  const r=records.find(x=>x.id===curEditId);
-  if(!r)return;
+  const r=records.find(x=>x.id===curEditId);if(!r)return;
   const campi={};
   CAMPI_EDIT.forEach(({key})=>{
-    const el=document.getElementById("ef-"+key);
-    if(!el)return;
+    const el=document.getElementById("ef-"+key);if(!el)return;
     const nv=el.value.trim(),ov=String(r[key]||"").trim();
     if(nv!==ov&&COL_MAP[key])campi[COL_MAP[key]]=nv;
   });
@@ -571,12 +484,9 @@ async function saveEdit(){
     document.getElementById("saving-ov").style.display="none";
     showToast("✅ Salvato!");
     setTimeout(()=>doRefresh(),1500);
-  }catch(e){
-    document.getElementById("saving-ov").style.display="none";showToast("❌ Errore");
-  }
+  }catch(e){document.getElementById("saving-ov").style.display="none";showToast("❌ Errore");}
 }
 
-// ── TOAST ──────────────────────────────────────────────────────────────
 let toastT;
 function showToast(msg){
   const t=document.getElementById("toast");
