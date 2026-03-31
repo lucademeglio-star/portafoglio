@@ -353,21 +353,29 @@ function rowCardHtml(r){
 }
 
 // ── TAB SCADENZE — lista cronologica pura ──────────────────────────────
-function renderScad(){
-  // Filtro urgenza rapido
-  const chips=[["","Tutte"],["scaduta","🔴"],["urgente","🟠 ≤7"],["prossima","🟡 ≤30"],["in_vista","🟢 ≤60"]];
-  let html=`<div class="chip-bar">${chips.map(([v,l])=>`<span class="chip${filtroUrgScad===v?" active":""}" onclick="setUrgScad('${v}')">${l}</span>`).join("")}</div>`;
+let scadDir = "asc"; // asc = prima i più vecchi, desc = prima i più recenti
 
-  // Tutti i record con todo valorizzato, ordinati per todo ASC
-  let lista=records.filter(r=>r.todo).sort((a,b)=>{
+function renderScad(){
+  const chips=[["","Tutte"],["scaduta","🔴"],["urgente","🟠 ≤7"],["prossima","🟡 ≤30"],["in_vista","🟢 ≤60"]];
+  let html=`<div class="chip-bar">
+    ${chips.map(([v,l])=>`<span class="chip${filtroUrgScad===v?" active":""}" onclick="setUrgScad('${v}')">${l}</span>`).join("")}
+    <span class="chip${scadDir==="asc"?" active":""}" onclick="toggleScadDir()" style="margin-left:auto">
+      ${scadDir==="asc"?"↑ Vecchie prima":"↓ Recenti prima"}
+    </span>
+  </div>`;
+
+  let lista=[...records].sort((a,b)=>{
+    if(!a.todo && !b.todo) return (a.contraente||"").localeCompare(b.contraente||"");
+    if(!a.todo) return 1;
+    if(!b.todo) return -1;
     const da=diffDays(a.todo),db=diffDays(b.todo);
-    if(da!==db)return da-db;
-    return(a.contraente||"").localeCompare(b.contraente||"");
+    const cmp = da!==db ? da-db : (a.contraente||"").localeCompare(b.contraente||"");
+    return scadDir==="asc" ? cmp : -cmp;
   });
 
   if(filtroUrgScad) lista=lista.filter(r=>urgClass(r.todo)===filtroUrgScad);
 
-  html+=`<div class="sec-label">${lista.length} righe ordinate per TO-DO</div>`;
+  html+=`<div class="sec-label">${lista.length} righe · ordine TO-DO · in fondo senza data</div>`;
 
   if(lista.length===0){html+=`<div class="empty"><div class="empty-icon">✅</div>Nessuna riga</div>`;}
   else{
@@ -387,6 +395,7 @@ function renderScad(){
   document.getElementById("content").innerHTML=html;
 }
 function setUrgScad(v){filtroUrgScad=filtroUrgScad===v?"":v;renderScad();}
+function toggleScadDir(){scadDir=scadDir==="asc"?"desc":"asc";renderScad();}
 
 // ── TAB ARRETRATI ──────────────────────────────────────────────────────
 function renderArr(){
