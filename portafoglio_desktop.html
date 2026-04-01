@@ -58,6 +58,9 @@ tbody tr{border-bottom:1px solid rgba(59,130,246,.05);cursor:pointer}
 tbody tr:hover{background:rgba(59,130,246,.05)}
 tbody tr.arr{background:rgba(249,115,22,.05);border-left:2px solid #f97316}
 tbody tr.arr:hover{background:rgba(249,115,22,.09)}
+tbody tr.imp-row{background:rgba(239,68,68,.07);border-left:2px solid #ef4444}
+tbody tr.imp-row:hover{background:rgba(239,68,68,.12)}
+tbody tr.arr:hover{background:rgba(249,115,22,.09)}
 tbody tr.sel{background:rgba(59,130,246,.1)!important}
 td{padding:7px 10px;color:#e2e8f0;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 td.nm{color:#93c5fd;font-weight:700}
@@ -381,11 +384,14 @@ function renderTable(){
   document.getElementById("tbl-count").textContent=lista.length+" righe";
   document.getElementById("tbody").innerHTML=lista.map(r=>{
     const arr=isArr(r);
+    const imp_flag=(r.settore||"").toUpperCase()==="IMP";
     const imp=r.importo?parseFloat(r.importo).toLocaleString("it-IT"):"—";
     const note=[r.nota1,r.nota2].filter(Boolean).join(" | ").slice(0,50);
-    return `<tr class="${arr?"arr":""} ${curDetId===r.id?"sel":""}" onclick="openDet(${r.id})">
+    const rowClass=imp_flag?"imp-row":arr?"arr":"";
+    const impB=imp_flag?'🔥 ':"";
+    return `<tr class="${rowClass} ${curDetId===r.id?"sel":""}" onclick="openDet(${r.id})">
       <td>${fmtS(r.todo)}</td><td>${fmtS(r.scad)}</td>
-      <td class="nm">${arr?'<span class="arr-bdg">ARR</span> ':""}${esc(r.contraente||"—")}</td>
+      <td class="nm">${impB}${arr?'<span class="arr-bdg">ARR</span> ':""}${esc(r.contraente||"—")}</td>
       <td><span class="bdg" style="color:${sCol(r.stato)};background:${sCol(r.stato)}22">${esc(r.stato||"—")}</span></td>
       <td>${esc(r.settore||"—")}</td><td>${esc(r.ramo||"—")}</td>
       <td style="font-family:monospace;font-size:11px">${r.polizza?String(r.polizza).slice(-7):"—"}</td>
@@ -407,23 +413,41 @@ function renderTotSett(){
 function openDet(id){
   curDetId=id;
   const r=records.find(x=>x.id===id);if(!r)return;
-  document.getElementById("det-name").textContent=r.contraente;
-  const campi=[["TO-DO",fmtF(r.todo)],["Scadenza",fmtF(r.scad)],["Settore",r.settore],["Ramo",r.ramo],["Polizza",r.polizza],["Importo",fmtEur(r.importo)],["Stato",r.stato],["Rinnovo",r.rinn],["Fraz.",r.fr],["Targa",r.targa],["Cell",r.cell],["Email",r.email],["Città",r.citta],["CF",r.cf]].filter(([,v])=>v&&v!=="—");
-  const arr=isArr(r);
-  let html=`<div style="margin-bottom:8px;display:flex;gap:5px;flex-wrap:wrap">
-    ${arr?'<span class="arr-bdg" style="font-size:10px;padding:3px 8px">ARR</span>':""}
-    <span class="bdg" style="font-size:10px;padding:3px 8px;color:${sCol(r.stato)};background:${sCol(r.stato)}22">${esc(r.stato||"—")}</span>
-    ${r.settore?`<span style="font-size:10px;color:#64748b">${esc(r.settore)}</span>`:""}
-  </div>
-  <div class="det-grid">${campi.map(([l,v])=>`<div class="det-cell"><div class="det-lbl">${l}</div><div class="det-val">${esc(v||"—")}</div></div>`).join("")}</div>`;
-  if(r.nota1)html+=`<div class="note-bx"><div class="note-lbl">Nota 1</div><div class="note-val">${esc(r.nota1)}</div></div>`;
-  if(r.nota2)html+=`<div class="note-bx"><div class="note-lbl">Nota 2</div><div class="note-val">${esc(r.nota2)}</div></div>`;
-  const altre=records.filter(x=>x.contraente===r.contraente&&x.id!==r.id);
-  if(altre.length){
-    html+=`<div style="margin-top:10px"><div class="det-lbl" style="margin-bottom:5px">Altre righe (${altre.length})</div>`;
-    altre.forEach(x=>{html+=`<div onclick="openDet(${x.id})" style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(59,130,246,.06);cursor:pointer"><span style="font-size:11px;color:${isArr(x)?"#f97316":"#93c5fd"}">${isArr(x)?"ARR":""} ${esc(x.settore||x.ramo||"—")}</span><span style="font-size:11px;color:#64748b">${fmtS(x.todo)||"—"}</span></div>`;});
-    html+="</div>";
-  }
+  document.getElementById("det-name").textContent="👤 "+r.contraente;
+
+  // Tutte le righe del cliente, ARR prima poi per todo
+  const righe=[...records].filter(x=>x.contraente===r.contraente)
+    .sort((a,b)=>(isArr(b)?1:0)-(isArr(a)?1:0)||dVal(a.todo)-dVal(b.todo));
+
+  let html=`<div style="font-size:9px;color:#475569;text-transform:uppercase;margin-bottom:8px;font-weight:700">${righe.length} righe</div>`;
+
+  righe.forEach(x=>{
+    const arr=isArr(x);
+    const selected=x.id===id?"border-color:rgba(59,130,246,.4);":"";
+    const campi=[
+      ["Contraente",x.contraente],["Ramo",x.ramo],["Polizza",x.polizza],
+      ["SCAD",x.scad],["TO-DO",x.todo],["Importo",fmtEur(x.importo)],
+      ["Rinn",x.rinn],["FR",x.fr],["Settore",x.settore],["Stato",x.stato],
+      ["Targa",x.targa],["Settori",x.settori],["Nota 1",x.nota1],["Nota 2",x.nota2],
+      ["Capo",x.capo],["Rami",x.rami],["Indirizzo",x.indirizzo],["Città",x.citta],
+      ["Cell",x.cell],["Email",x.email],["Tipol.",x.tipolCli],["Sub",x.sub],["CF/Conv",x.cf]
+    ].filter(([,v])=>v&&String(v).trim()&&String(v).trim()!=="—");
+
+    html+=`<div style="background:${arr?"rgba(249,115,22,.07)":"rgba(20,32,60,.6)"};border:1px solid ${arr?"rgba(249,115,22,.3)":"rgba(59,130,246,.12)"};${selected}border-left:3px solid ${arr?"#f97316":"#334155"};border-radius:7px;padding:10px;margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div style="display:flex;gap:5px;align-items:center">
+          ${arr?'<span class="arr-bdg">ARR</span>':""}
+          <span class="bdg" style="color:${sCol(x.stato)};background:${sCol(x.stato)}22;font-size:9px;padding:2px 6px">${esc(x.stato||"—")}</span>
+        </div>
+        <div style="display:flex;gap:5px">
+          <button onclick="openEdit(${x.id})" style="background:linear-gradient(135deg,#1d4ed8,#2563eb);border:none;border-radius:6px;padding:4px 8px;color:#fff;font-size:10px;font-weight:700;cursor:pointer">✏️</button>
+          <button onclick="askDel(${x.id})" style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);border-radius:6px;padding:4px 8px;color:#fca5a5;font-size:10px;font-weight:700;cursor:pointer">🗑</button>
+        </div>
+      </div>
+      ${campi.map(([l,v])=>`<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(59,130,246,.06)"><span style="font-size:9px;color:#475569;text-transform:uppercase;font-weight:700;min-width:70px">${l}</span><span style="font-size:10px;color:#e2e8f0;text-align:right;word-break:break-word;max-width:180px">${esc(v||"")}</span></div>`).join("")}
+    </div>`;
+  });
+
   document.getElementById("det-body").innerHTML=html;
   document.getElementById("det").classList.add("open");
   renderTable();
