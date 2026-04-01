@@ -402,22 +402,22 @@ function openCli(nome) {
       ["Targa",r.targa],["Settori",r.settori],["Nota 1",r.nota1],["Nota 2",r.nota2],
       ["Capo",r.capo],["Rami",r.rami],["Indirizzo",r.indirizzo],["Città",r.citta],
       ["Cell",r.cell],["Email",r.email],["Tipol. Cli",r.tipolCli],["Sub",r.sub],["CF/Conv",r.cf]
-    ];
+    ].filter(([,v])=>v&&String(v).trim()&&String(v).trim()!=="—");
     html+=`<div class="pol-card${arr?" arr":""}">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap">
           ${arr?'<span class="arr-badge">ARR</span>':""}
-          <span class="badge" style="color:${sCol(r.stato)};background:${sCol(r.stato)}22;font-size:8px;padding:2px 6px">${esc(r.stato||"—")}</span>
-          ${r.settore?`<span style="font-size:8px;color:#64748b">${esc(r.settore)}</span>`:""}
+          <span class="badge" style="color:${sCol(r.stato)};background:${sCol(r.stato)}22;font-size:9px;padding:3px 7px">${esc(r.stato||"—")}</span>
         </div>
         <div style="display:flex;gap:6px">
           <button class="btn-p" style="padding:5px 10px;font-size:10px" onclick="openEdit(${r.id})">✏️ Modifica</button>
           <button class="del-btn" onclick="askDelete(${r.id},'${esc(r.contraente)}')">🗑 Elimina</button>
         </div>
       </div>
-      <div class="pol-grid">${campi.map(([l,v])=>`<div class="pol-cell"><div class="pol-lbl">${l}</div><div class="pol-val">${esc(v||"—")}</div></div>`).join("")}</div>
-      ${r.nota1?`<div class="note-box"><div class="note-lbl">Nota 1</div><div class="note-val">${esc(r.nota1)}</div></div>`:""}
-      ${r.nota2?`<div class="note-box"><div class="note-lbl">Nota 2</div><div class="note-val">${esc(r.nota2)}</div></div>`:""}
+      ${campi.map(([l,v])=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(59,130,246,.06)">
+        <span style="font-size:9px;color:#475569;text-transform:uppercase;font-weight:700;min-width:80px">${l}</span>
+        <span style="font-size:11px;color:#e2e8f0;text-align:right;word-break:break-word;max-width:200px">${esc(v||"")}</span>
+      </div>`).join("")}
     </div>`;
   });
   document.getElementById("cli-body").innerHTML=html;
@@ -446,25 +446,31 @@ async function confirmDelete(){
 }
 
 // MODIFICA
-const COL_MAP = {contraente:1,ramo:2,polizza:3,scad:4,todo:5,importo:6,rinn:7,fr:8,settore:9,stato:10,targa:11,nota1:13,nota2:14,indirizzo:17,citta:18,cell:19,email:20};
+const COL_MAP = {contraente:1,ramo:2,polizza:3,scad:4,todo:5,importo:6,rinn:7,fr:8,settore:9,stato:10,targa:11,settori:12,nota1:13,nota2:14,capo:15,rami:16,indirizzo:17,citta:18,cell:19,email:20,tipolCli:21,sub:22,cf:23};
 const CAMPI_EDIT = [
-  {key:"stato",label:"Stato",type:"select",opts:STATI},
-  {key:"settore",label:"Settore",type:"select",opts:SETTORI},
+  {key:"contraente",label:"Contraente",type:"text"},
+  {key:"ramo",label:"Ramo (cod.)",type:"text"},
+  {key:"polizza",label:"N° Polizza",type:"text"},
+  {key:"scad",label:"SCAD",type:"text",ph:"GG/MM/AAAA"},
   {key:"todo",label:"TO-DO",type:"text",ph:"GG/MM/AAAA"},
-  {key:"scad",label:"Scadenza",type:"text",ph:"GG/MM/AAAA"},
   {key:"importo",label:"Importo (€)",type:"number"},
   {key:"rinn",label:"Rinnovo",type:"select",opts:["","S","N"]},
-  {key:"fr",label:"Frazionamento",type:"text"},
+  {key:"fr",label:"FR",type:"text"},
+  {key:"settore",label:"Settore",type:"select",opts:SETTORI},
+  {key:"stato",label:"Stato",type:"select",opts:STATI},
   {key:"targa",label:"Targa",type:"text"},
+  {key:"settori",label:"Settori",type:"text"},
   {key:"nota1",label:"Nota 1",type:"textarea"},
   {key:"nota2",label:"Nota 2",type:"textarea"},
-  {key:"contraente",label:"Contraente",type:"text"},
-  {key:"polizza",label:"N° Polizza",type:"text"},
-  {key:"ramo",label:"Ramo (cod.)",type:"text"},
-  {key:"cell",label:"Cellulare",type:"text"},
-  {key:"email",label:"Email",type:"text"},
+  {key:"capo",label:"Capo",type:"text"},
+  {key:"rami",label:"Rami",type:"text"},
   {key:"indirizzo",label:"Indirizzo",type:"text"},
   {key:"citta",label:"Città",type:"text"},
+  {key:"cell",label:"Cellulare",type:"text"},
+  {key:"email",label:"Email",type:"text"},
+  {key:"tipolCli",label:"Tipol. Cli",type:"text"},
+  {key:"sub",label:"Sub",type:"text"},
+  {key:"cf",label:"CF/Conv",type:"text"},
 ];
 let curEditId = null;
 
@@ -472,16 +478,21 @@ function openEdit(id) {
   const r = records.find(x=>x.id===id); if(!r) return;
   curEditId = id;
   document.getElementById("edit-title").textContent = r.contraente;
-  let html = `<div style="font-size:10px;color:#6ee7b7;padding:8px 10px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:7px;margin-bottom:14px">✅ Le modifiche vengono salvate direttamente su Google Sheets</div>`;
+  const stl = "width:100%;background:rgba(20,32,60,.9);border:1px solid rgba(59,130,246,.3);border-radius:7px;padding:8px 10px;color:#f1f5f9;font-size:13px;outline:none;font-family:inherit";
+  let html = `<div style="font-size:10px;color:#6ee7b7;padding:7px 9px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:7px;margin-bottom:12px">✅ Modifiche salvate direttamente su Google Sheets</div>`;
+  html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">`;
   CAMPI_EDIT.forEach(({key,label,type,opts,ph})=>{
     const val = String(r[key]||"");
-    html += `<div style="margin-bottom:12px"><label style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.07em;font-weight:700;display:block;margin-bottom:4px">${label}</label>`;
-    if(type==="select") html+=`<select style="width:100%;background:rgba(20,32,60,.9);border:1px solid rgba(59,130,246,.3);border-radius:7px;padding:9px 11px;color:#f1f5f9;font-size:14px;outline:none;font-family:inherit" id="ef-${key}"><option value=""></option>${opts.map(o=>`<option value="${esc(o)}"${o===val?" selected":""}>${esc(o)||"—"}</option>`).join("")}</select>`;
-    else if(type==="textarea") html+=`<textarea style="width:100%;background:rgba(20,32,60,.9);border:1px solid rgba(59,130,246,.3);border-radius:7px;padding:9px 11px;color:#f1f5f9;font-size:14px;outline:none;font-family:inherit;resize:vertical;min-height:60px" id="ef-${key}">${esc(val)}</textarea>`;
-    else if(type==="number") html+=`<input type="number" step="0.01" style="width:100%;background:rgba(20,32,60,.9);border:1px solid rgba(59,130,246,.3);border-radius:7px;padding:9px 11px;color:#f1f5f9;font-size:14px;outline:none;font-family:inherit" id="ef-${key}" value="${val}">`;
-    else html+=`<input type="text" style="width:100%;background:rgba(20,32,60,.9);border:1px solid rgba(59,130,246,.3);border-radius:7px;padding:9px 11px;color:#f1f5f9;font-size:14px;outline:none;font-family:inherit" id="ef-${key}" value="${esc(val)}" placeholder="${ph||""}">`;
+    const isWide = type==="textarea";
+    html += `<div style="${isWide?"grid-column:1/-1;":""} margin-bottom:4px">`;
+    html += `<label style="font-size:8px;color:#64748b;text-transform:uppercase;letter-spacing:.07em;font-weight:700;display:block;margin-bottom:3px">${label}</label>`;
+    if(type==="select") html+=`<select style="${stl}" id="ef-${key}"><option value=""></option>${opts.map(o=>`<option value="${esc(o)}"${o===val?" selected":""}>${esc(o)||"—"}</option>`).join("")}</select>`;
+    else if(type==="textarea") html+=`<textarea style="${stl};resize:vertical;min-height:56px" id="ef-${key}">${esc(val)}</textarea>`;
+    else if(type==="number") html+=`<input type="number" step="0.01" style="${stl}" id="ef-${key}" value="${val}">`;
+    else html+=`<input type="text" style="${stl}" id="ef-${key}" value="${esc(val)}" placeholder="${ph||""}">`;
     html += "</div>";
   });
+  html += "</div>";
   document.getElementById("edit-body").innerHTML = html;
   document.getElementById("edit-ov").style.display = "flex";
 }
