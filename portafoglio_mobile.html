@@ -274,7 +274,7 @@ function cardHtml(r) {
   const arrB=arr?'<span class="arr-badge">ARR</span> ':"";
   const statoB=`<span class="badge" style="color:${sCol(r.stato)};background:${sCol(r.stato)}22">${esc(r.stato||"—")}</span>`;
   const imp=r.importo?`<span class="imp-badge">€${parseFloat(r.importo).toLocaleString("it-IT")}</span>`:"";
-  const sub=[r.settore,r.targa].filter(Boolean).join(" · ");
+  const sub=[r.settore,r.targa,r.settori].filter(Boolean).join(" · ");
   const dateField=sortField==="scad"?r.scad:r.todo;
   const dateD=fmtFull(dateField);
   const pol=r.polizza?`<div class="pol-num">${String(r.polizza).slice(-6)}</div>`:"";
