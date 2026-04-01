@@ -228,25 +228,31 @@ const SCRIPT_URL="https://script.google.com/macros/s/AKfycbzCeGfHs9fLXgwn0nTxX_2
 const CSV_COLS=["contraente","ramo","polizza","scad","todo","importo","rinn","fr","settore","stato","targa","settori","nota1","nota2","capo","rami","indirizzo","citta","cell","email","tipolCli","sub","cf"];
 const SETTORI=["RCA","INFORTUNI","RCG","RDP","FURTO","ARRETRATO","SCREENING","#SALUTE","IRO","IMP","INF","VITA","VITA INDIVIDUALI","VITA-FONDI","TCM","CASA","CAT NAT","CAUZIONI","TRASPORTI","FAMIGLIA","DOC","MAL","MALATTIE","CVT","TOP","VARI","PROVV"];
 const STATI=["ATTIVA","SCHEDA","PROSPETTIVA","RECUPERO","ARR","SOSPESA","DOCUMENTI","LISTE","PREV RCA URG","BPER","SENZA SPER","SINISTRO","SCAD","RIFORMA","BDA","CAT NAT"];
-const COL_MAP={contraente:1,ramo:2,polizza:3,scad:4,todo:5,importo:6,rinn:7,fr:8,settore:9,stato:10,targa:11,nota1:13,nota2:14,indirizzo:17,citta:18,cell:19,email:20};
+const COL_MAP={contraente:1,ramo:2,polizza:3,scad:4,todo:5,importo:6,rinn:7,fr:8,settore:9,stato:10,targa:11,settori:12,nota1:13,nota2:14,capo:15,rami:16,indirizzo:17,citta:18,cell:19,email:20,tipolCli:21,sub:22,cf:23};
 const CAMPI_EDIT=[
-  {key:"stato",label:"Stato",type:"select",opts:STATI},
-  {key:"settore",label:"Settore",type:"select",opts:SETTORI},
+  {key:"contraente",label:"Contraente",type:"text"},
+  {key:"ramo",label:"Ramo (cod.)",type:"text"},
+  {key:"polizza",label:"N° Polizza",type:"text"},
+  {key:"scad",label:"SCAD",type:"text",ph:"GG/MM/AAAA"},
   {key:"todo",label:"TO-DO",type:"text",ph:"GG/MM/AAAA"},
-  {key:"scad",label:"Scadenza",type:"text",ph:"GG/MM/AAAA"},
   {key:"importo",label:"Importo (€)",type:"number"},
   {key:"rinn",label:"Rinnovo",type:"select",opts:["","S","N"]},
-  {key:"fr",label:"Frazionamento",type:"text"},
+  {key:"fr",label:"FR",type:"text"},
+  {key:"settore",label:"Settore",type:"select",opts:SETTORI},
+  {key:"stato",label:"Stato",type:"select",opts:STATI},
   {key:"targa",label:"Targa",type:"text"},
+  {key:"settori",label:"Settori",type:"text"},
   {key:"nota1",label:"Nota 1",type:"textarea"},
   {key:"nota2",label:"Nota 2",type:"textarea"},
-  {key:"contraente",label:"Contraente",type:"text"},
-  {key:"polizza",label:"N° Polizza",type:"text"},
-  {key:"ramo",label:"Ramo (cod.)",type:"text"},
-  {key:"cell",label:"Cellulare",type:"text"},
-  {key:"email",label:"Email",type:"text"},
+  {key:"capo",label:"Capo",type:"text"},
+  {key:"rami",label:"Rami",type:"text"},
   {key:"indirizzo",label:"Indirizzo",type:"text"},
   {key:"citta",label:"Città",type:"text"},
+  {key:"cell",label:"Cellulare",type:"text"},
+  {key:"email",label:"Email",type:"text"},
+  {key:"tipolCli",label:"Tipol. Cli",type:"text"},
+  {key:"sub",label:"Sub",type:"text"},
+  {key:"cf",label:"CF/Conv",type:"text"},
 ];
 const STATO_COL={ATTIVA:"#10b981",SCHEDA:"#3b82f6",PROSPETTIVA:"#a78bfa",RECUPERO:"#f59e0b",ARR:"#ef4444",SOSPESA:"#6b7280",DOCUMENTI:"#06b6d4",BDA:"#8b5cf6"};
 const sCol=s=>STATO_COL[s]||"#6b7280";
@@ -256,7 +262,7 @@ const fmtEur=v=>v!=null&&v!==""?"€ "+parseFloat(v).toLocaleString("it-IT",{min
 const MESI_IT={gen:"Jan",feb:"Feb",mar:"Mar",apr:"Apr",mag:"May",giu:"Jun",lug:"Jul",ago:"Aug",set:"Sep",ott:"Oct",nov:"Nov",dic:"Dec"};
 function normDate(s){
   if(!s||typeof s!=="string")return null;
-  s=s.trim();if(!s||s==="\"||s==="/"||s.length<5)return null;
+  s=s.trim();if(!s||s==="\\"||s==="/"||s.length<5)return null;
   s=s.replace(/\b(gen|feb|mar|apr|mag|giu|lug|ago|set|ott|nov|dic)\b/gi,m=>MESI_IT[m.toLowerCase()]||m);
   const m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
   if(m)s=`${m[3]}-${m[2].padStart(2,"0")}-${m[1].padStart(2,"0")}`;
@@ -441,17 +447,24 @@ function openEdit(id){
   document.getElementById("edit-pnl").classList.add("open");
 }
 function closeEdit(){document.getElementById("edit-pnl").classList.remove("open");curEditId=null;}
+function callScript(url){
+  let iframe=document.getElementById("script-iframe");
+  if(!iframe){iframe=document.createElement("iframe");iframe.id="script-iframe";iframe.style.display="none";document.body.appendChild(iframe);}
+  iframe.src=url;
+}
+
 async function saveEdit(){
   const r=records.find(x=>x.id===curEditId);if(!r)return;
   const campi={};
   CAMPI_EDIT.forEach(({key})=>{const el=document.getElementById("ef-"+key);if(!el)return;const nv=el.value.trim(),ov=String(r[key]||"").trim();if(nv!==ov&&COL_MAP[key])campi[COL_MAP[key]]=nv;});
   if(Object.keys(campi).length===0){showToast("Nessuna modifica");closeEdit();return;}
+  const rowId=curEditId;
   closeEdit();showToast("💾 Salvataggio…");
-  try{
-    await fetch(SCRIPT_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"edit",row:curEditId,campi:campi})});
-    showToast("✅ Salvato!");setTimeout(()=>doRefresh(),1500);
-  }catch(e){showToast("❌ Errore salvataggio");}
+  const url=SCRIPT_URL+"?action=edit&row="+rowId+"&campi="+encodeURIComponent(JSON.stringify(campi));
+  callScript(url);
+  showToast("✅ Salvato!");setTimeout(()=>doRefresh(),2000);
 }
+
 function askDel(id){
   pendDelId=id;
   const r=records.find(x=>x.id===id);
@@ -459,14 +472,12 @@ function askDel(id){
   document.getElementById("cfm-wrap").classList.add("open");
 }
 function cancelDel(){document.getElementById("cfm-wrap").classList.remove("open");pendDelId=null;}
-async function confirmDel(){
+function confirmDel(){
   document.getElementById("cfm-wrap").classList.remove("open");
   if(!pendDelId)return;
-  showToast("🗑 Eliminazione…");
-  try{
-    await fetch(SCRIPT_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"delete",row:pendDelId})});
-    showToast("✅ Eliminata!");closeDet();setTimeout(()=>doRefresh(),1500);
-  }catch(e){showToast("❌ Errore eliminazione");}
+  const url=SCRIPT_URL+"?action=delete&row="+pendDelId;
+  callScript(url);
+  showToast("✅ Eliminata!");closeDet();setTimeout(()=>doRefresh(),2000);
   pendDelId=null;
 }
 let toastT;
