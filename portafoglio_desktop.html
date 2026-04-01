@@ -224,7 +224,7 @@ td.nm{color:#93c5fd;font-weight:700}
 
 <script>
 const CSV_URL="https://docs.google.com/spreadsheets/d/1eptc1n6yyUfgKrqpppQtuYn7VDCE5CddSMHKf1Sj6hs/export?format=csv&gid=59454588";
-const SCRIPT_URL="https://script.google.com/macros/s/AKfycbxzNrweHVTOKJ8ZuL2PNKnrUZGeHh-yH5ktdFHl1ef3RzN6GSn6SIRLTqYAA7q64c5r5A/exec";
+const SCRIPT_URL="https://script.google.com/macros/s/AKfycbzCeGfHs9fLXgwn0nTxX_28ncuJSKDjzqz0lpLahbdflGlo0K7uJDJUy4t-J1zuy7k26w/exec";
 const CSV_COLS=["contraente","ramo","polizza","scad","todo","importo","rinn","fr","settore","stato","targa","settori","nota1","nota2","capo","rami","indirizzo","citta","cell","email","tipolCli","sub","cf"];
 const SETTORI=["RCA","INFORTUNI","RCG","RDP","FURTO","ARRETRATO","SCREENING","#SALUTE","IRO","IMP","INF","VITA","VITA INDIVIDUALI","VITA-FONDI","TCM","CASA","CAT NAT","CAUZIONI","TRASPORTI","FAMIGLIA","DOC","MAL","MALATTIE","CVT","TOP","VARI","PROVV"];
 const STATI=["ATTIVA","SCHEDA","PROSPETTIVA","RECUPERO","ARR","SOSPESA","DOCUMENTI","LISTE","PREV RCA URG","BPER","SENZA SPER","SINISTRO","SCAD","RIFORMA","BDA","CAT NAT"];
@@ -290,11 +290,13 @@ function parseCSV(text){
 
 let records=[],fRamo=[],fStato=[],fSett=[],sortF="todo",sortD="asc",colF="todo",colD="asc",curDetId=null,curEditId=null,pendDelId=null;
 
-setTimeout(()=>{const b=document.getElementById("retry-btn");if(b)b.style.display="block";},15000);
+setTimeout(()=>{const b=document.getElementById("retry-btn");if(b)b.style.display="block";},8000);
 
 async function loadData(){
   try{
-    const res=await fetch(CSV_URL,{cache:"no-cache"});
+    const ctrl=new AbortController();
+    setTimeout(()=>ctrl.abort(),10000);
+    const res=await fetch(CSV_URL,{cache:"no-cache",signal:ctrl.signal});
     if(!res.ok)throw new Error();
     const data=parseCSV(await res.text());
     if(data.length===0)throw new Error();
