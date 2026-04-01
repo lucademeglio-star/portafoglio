@@ -481,16 +481,25 @@ async function saveEdit() {
     const nv = el.value.trim(), ov = String(r[key]||"").trim();
     if(nv!==ov && COL_MAP[key]) campi[COL_MAP[key]] = nv;
   });
-  if(Object.keys(campi).length===0){showToast("Nessuna modifica");closeEdit();return;}
+  if(Object.keys(campi).length===0){
+    console.log("Nessuna modifica trovata");
+    CAMPI_EDIT.forEach(({key})=>{
+      const el=document.getElementById("ef-"+key);if(!el)return;
+      console.log(key, "nuovo:", el.value.trim(), "| vecchio:", String(r[key]||"").trim(), "| col:", COL_MAP[key]);
+    });
+    showToast("Nessuna modifica");closeEdit();return;
+  }
+  console.log("Campi da salvare:", campi);
   closeEdit(); closeCli();
   showToast("💾 Salvataggio…");
   try {
     const campiStr = encodeURIComponent(JSON.stringify(campi));
     const url = SCRIPT_URL + "?action=edit&row=" + curEditId + "&campi=" + campiStr;
+    console.log("URL:", url);
     await fetch(url);
     showToast("✅ Salvato!");
     setTimeout(()=>doRefresh(),1500);
-  } catch(e) { showToast("❌ Errore salvataggio"); }
+  } catch(e) { console.error(e); showToast("❌ Errore salvataggio"); }
 }
 
 let toastT;
