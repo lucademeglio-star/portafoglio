@@ -395,7 +395,7 @@ function openCli(nome) {
   let html=`<div class="sec-label">${righe.length} righe</div>`;
   righe.forEach(r=>{
     const arr=isArr(r);
-    const campi=[["TO-DO",r.todo||"—"],["Scadenza",r.scad||"—"],["Settore",r.settore],["Ramo",r.ramo],["Polizza",r.polizza],["Importo",fmtEur(r.importo)],["Stato",r.stato],["Targa",r.targa],["Rinnovo",r.rinn],["Fraz.",r.fr]].filter(([,v])=>v&&v!=="—");
+    const campi=[["TO-DO",r.todo||"—"],["Scadenza",r.scad||"—"],["Settore",r.settore],["Settori",r.settori],["Ramo",r.ramo],["Polizza",r.polizza],["Importo",fmtEur(r.importo)],["Stato",r.stato],["Targa",r.targa],["Rinnovo",r.rinn],["Fraz.",r.fr]].filter(([,v])=>v&&v!=="—");
     html+=`<div class="pol-card${arr?" arr":""}">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
         <div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap">
