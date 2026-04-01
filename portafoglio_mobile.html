@@ -271,7 +271,9 @@ function renderTab() {
 
 function cardHtml(r) {
   const arr=isArr(r);
+  const imp_flag=(r.settore||"").toUpperCase()==="IMP";
   const arrB=arr?'<span class="arr-badge">ARR</span> ':"";
+  const impB=imp_flag?'<span style="font-size:11px;margin-right:3px">🔥</span>':"";
   const statoB=`<span class="badge" style="color:${sCol(r.stato)};background:${sCol(r.stato)}22">${esc(r.stato||"—")}</span>`;
   const imp=r.importo?`<span class="imp-badge">€${parseFloat(r.importo).toLocaleString("it-IT")}</span>`:"";
   const sub=[r.settore,r.targa,r.settori].filter(Boolean).join(" · ");
@@ -280,9 +282,14 @@ function cardHtml(r) {
   const pol=r.polizza?`<div class="pol-num">${String(r.polizza).slice(-6)}</div>`:"";
   const nota1=r.nota1?`<div style="font-size:9px;color:#fde047;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">📝 ${esc(r.nota1)}</div>`:"";
   const nota2=r.nota2?`<div style="font-size:9px;color:#fde047;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">📝 ${esc(r.nota2)}</div>`:"";
-  return `<div class="card${arr?" arr":""}">
+  const borderStyle = imp_flag
+    ? "background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.4);border-left:3px solid #ef4444"
+    : arr
+      ? "background:rgba(249,115,22,.08);border:1px solid rgba(249,115,22,.22);border-left:3px solid #f97316"
+      : "background:rgba(20,32,60,.8);border:1px solid rgba(59,130,246,.1);border-left:3px solid #334155";
+  return `<div class="card" style="${borderStyle}">
     <div class="card-l">
-      <div class="card-name" onclick="openCli('${esc(r.contraente)}')">${arrB}${esc(r.contraente||"—")}</div>
+      <div class="card-name" onclick="openCli('${esc(r.contraente)}')">${impB}${arrB}${esc(r.contraente||"—")}</div>
       <div class="card-sub">${esc(sub)}</div>
       <div class="card-tags">${statoB}${imp}</div>
       ${nota1}${nota2}
