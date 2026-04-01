@@ -422,7 +422,7 @@ async function confirmDelete(){
   if(!pendingDeleteId)return;
   try{
     const params = new URLSearchParams({action:"delete", row:pendingDeleteId});
-    await fetch(SCRIPT_URL + "?" + params.toString(), {mode:"no-cors"});
+    await fetch(SCRIPT_URL + "?" + params.toString());
     showToast("✅ Riga eliminata");
     setTimeout(()=>doRefresh(),1500);
   }catch(e){showToast("❌ Errore eliminazione");}
@@ -490,7 +490,7 @@ async function saveEdit() {
       row: curEditId,
       campi: JSON.stringify(campi)
     });
-    await fetch(SCRIPT_URL + "?" + params.toString(), {mode:"no-cors"});
+    await fetch(SCRIPT_URL + "?" + params.toString());
     showToast("✅ Salvato!");
     setTimeout(()=>doRefresh(),1500);
   } catch(e) { showToast("❌ Errore salvataggio"); }
