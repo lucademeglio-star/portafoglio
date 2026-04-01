@@ -481,25 +481,23 @@ async function saveEdit() {
     const nv = el.value.trim(), ov = String(r[key]||"").trim();
     if(nv!==ov && COL_MAP[key]) campi[COL_MAP[key]] = nv;
   });
-  if(Object.keys(campi).length===0){
-    console.log("Nessuna modifica trovata");
-    CAMPI_EDIT.forEach(({key})=>{
-      const el=document.getElementById("ef-"+key);if(!el)return;
-      console.log(key, "nuovo:", el.value.trim(), "| vecchio:", String(r[key]||"").trim(), "| col:", COL_MAP[key]);
-    });
-    showToast("Nessuna modifica");closeEdit();return;
+  // Debug temporaneo
+  const nota1El = document.getElementById("ef-nota1");
+  if(nota1El) {
+    const nv = nota1El.value.trim();
+    const ov = String(r["nota1"]||"").trim();
+    alert("nota1 nuovo: [" + nv + "]\nnota1 vecchio: [" + ov + "]\nuguale: " + (nv===ov) + "\ncol: " + COL_MAP["nota1"]);
   }
-  console.log("Campi da salvare:", campi);
+  if(Object.keys(campi).length===0){showToast("Nessuna modifica");closeEdit();return;}
   closeEdit(); closeCli();
   showToast("💾 Salvataggio…");
   try {
     const campiStr = encodeURIComponent(JSON.stringify(campi));
     const url = SCRIPT_URL + "?action=edit&row=" + curEditId + "&campi=" + campiStr;
-    console.log("URL:", url);
     await fetch(url);
     showToast("✅ Salvato!");
     setTimeout(()=>doRefresh(),1500);
-  } catch(e) { console.error(e); showToast("❌ Errore salvataggio"); }
+  } catch(e) { showToast("❌ Errore salvataggio"); }
 }
 
 let toastT;
