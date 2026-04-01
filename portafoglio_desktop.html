@@ -448,7 +448,7 @@ async function saveEdit(){
   if(Object.keys(campi).length===0){showToast("Nessuna modifica");closeEdit();return;}
   closeEdit();showToast("💾 Salvataggio…");
   try{
-    await fetch(SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:JSON.stringify({action:"edit",row:curEditId,campi:campi})});
+    await fetch(SCRIPT_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"edit",row:curEditId,campi:campi})});
     showToast("✅ Salvato!");setTimeout(()=>doRefresh(),1500);
   }catch(e){showToast("❌ Errore salvataggio");}
 }
@@ -464,7 +464,7 @@ async function confirmDel(){
   if(!pendDelId)return;
   showToast("🗑 Eliminazione…");
   try{
-    await fetch(SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:JSON.stringify({action:"delete",row:pendDelId})});
+    await fetch(SCRIPT_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"delete",row:pendDelId})});
     showToast("✅ Eliminata!");closeDet();setTimeout(()=>doRefresh(),1500);
   }catch(e){showToast("❌ Errore eliminazione");}
   pendDelId=null;
