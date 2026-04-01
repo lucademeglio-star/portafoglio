@@ -281,8 +281,8 @@ function parseCSV(text){
   return lines.slice(1).map((line,idx)=>{
     const cols=[];let cur="",inQ=false;
     for(let i=0;i<line.length;i++){
-      if(line[i]==='"\'&&line[i+1]==='"\'){cur+='"';i++;}
-      else if(line[i]==='"\'){inQ=!inQ;}
+      if(line[i]==='"'&&line[i+1]==='"'){cur+='"';i++;}
+      else if(line[i]==='"'){inQ=!inQ;}
       else if(line[i]===','&&!inQ){cols.push(cur.trim());cur="";}
       else cur+=line[i];
     }
@@ -291,7 +291,7 @@ function parseCSV(text){
     CSV_COLS.forEach((k,i)=>{r[k]=(cols[i]||"").replace(/^"|"$/g,"").trim();});
     r.importo=r.importo?parseFloat(r.importo)||null:null;
     return r;
-  }).filter(r=>r.contraente&&r.contraente.trim()&&r.contraente!=="\"&&r.contraente!=="\\");
+  }).filter(r=>r.contraente&&r.contraente.trim()&&r.contraente!=="\\"&&r.contraente!=="\\\\");
 }
 
 let records=[],fRamo=[],fStato=[],fSett=[],sortF="todo",sortD="asc",colF="todo",colD="asc",curDetId=null,curEditId=null,pendDelId=null;
