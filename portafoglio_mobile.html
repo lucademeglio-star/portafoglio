@@ -421,8 +421,8 @@ async function confirmDelete(){
   document.getElementById("confirm-box").style.display="none";
   if(!pendingDeleteId)return;
   try{
-    const params = new URLSearchParams({action:"delete", row:pendingDeleteId});
-    await fetch(SCRIPT_URL + "?" + params.toString());
+    const url = SCRIPT_URL + "?action=delete&row=" + pendingDeleteId;
+    await fetch(url);
     showToast("✅ Riga eliminata");
     setTimeout(()=>doRefresh(),1500);
   }catch(e){showToast("❌ Errore eliminazione");}
@@ -485,12 +485,9 @@ async function saveEdit() {
   closeEdit(); closeCli();
   showToast("💾 Salvataggio…");
   try {
-    const params = new URLSearchParams({
-      action: "edit",
-      row: curEditId,
-      campi: JSON.stringify(campi)
-    });
-    await fetch(SCRIPT_URL + "?" + params.toString());
+    const campiStr = encodeURIComponent(JSON.stringify(campi));
+    const url = SCRIPT_URL + "?action=edit&row=" + curEditId + "&campi=" + campiStr;
+    await fetch(url);
     showToast("✅ Salvato!");
     setTimeout(()=>doRefresh(),1500);
   } catch(e) { showToast("❌ Errore salvataggio"); }
