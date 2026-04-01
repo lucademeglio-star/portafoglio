@@ -397,12 +397,12 @@ function openCli(nome) {
     const arr=isArr(r);
     const campi=[
       ["Contraente",r.contraente],["Ramo",r.ramo],["Polizza",r.polizza],
-      ["Scadenza",r.scad],["TO-DO",r.todo],["Importo",fmtEur(r.importo)],
-      ["Rinnovo",r.rinn],["FR",r.fr],["Settore",r.settore],["Stato",r.stato],
+      ["SCAD",r.scad],["TO-DO",r.todo],["Importo",fmtEur(r.importo)],
+      ["Rinn",r.rinn],["FR",r.fr],["Settore",r.settore],["Stato",r.stato],
       ["Targa",r.targa],["Settori",r.settori],["Nota 1",r.nota1],["Nota 2",r.nota2],
       ["Capo",r.capo],["Rami",r.rami],["Indirizzo",r.indirizzo],["Città",r.citta],
       ["Cell",r.cell],["Email",r.email],["Tipol. Cli",r.tipolCli],["Sub",r.sub],["CF/Conv",r.cf]
-    ].filter(([,v])=>v&&v!=="—"&&String(v).trim());
+    ];
     html+=`<div class="pol-card${arr?" arr":""}">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
         <div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap">
