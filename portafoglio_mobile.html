@@ -177,6 +177,10 @@ function fmtShort(s) {
   const d=normalizeDate(s); if(!d) return "—";
   return String(d.getDate()).padStart(2,"0")+"/"+String(d.getMonth()+1).padStart(2,"0");
 }
+function fmtFull(s) {
+  const d=normalizeDate(s); if(!d) return "—";
+  return String(d.getDate()).padStart(2,"0")+"/"+String(d.getMonth()+1).padStart(2,"0")+"/"+d.getFullYear();
+}
 
 function parseCSV(text) {
   const lines = text.trim().split("\n");
@@ -271,13 +275,17 @@ function cardHtml(r) {
   const statoB=`<span class="badge" style="color:${sCol(r.stato)};background:${sCol(r.stato)}22">${esc(r.stato||"—")}</span>`;
   const imp=r.importo?`<span class="imp-badge">€${parseFloat(r.importo).toLocaleString("it-IT")}</span>`:"";
   const sub=[r.settore,r.targa].filter(Boolean).join(" · ");
-  const dateD=sortField==="scad"?fmtShort(r.scad):fmtShort(r.todo);
+  const dateField=sortField==="scad"?r.scad:r.todo;
+  const dateD=fmtFull(dateField);
   const pol=r.polizza?`<div class="pol-num">${String(r.polizza).slice(-6)}</div>`:"";
+  const nota1=r.nota1?`<div style="font-size:9px;color:#fde047;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">📝 ${esc(r.nota1)}</div>`:"";
+  const nota2=r.nota2?`<div style="font-size:9px;color:#fde047;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">📝 ${esc(r.nota2)}</div>`:"";
   return `<div class="card${arr?" arr":""}">
     <div class="card-l">
       <div class="card-name" onclick="openCli('${esc(r.contraente)}')">${arrB}${esc(r.contraente||"—")}</div>
       <div class="card-sub">${esc(sub)}</div>
       <div class="card-tags">${statoB}${imp}</div>
+      ${nota1}${nota2}
     </div>
     <div class="card-r"><div class="date-col">${dateD}</div>${pol}</div>
   </div>`;
