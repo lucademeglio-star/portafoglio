@@ -524,27 +524,24 @@ function closeEdit() { document.getElementById("edit-ov").style.display="none"; 
 
 async function saveEdit() {
   const r = records.find(x=>x.id===curEditId); if(!r) return;
-  const campi = {};
+  const campi = {}, campiOld = {};
   CAMPI_EDIT.forEach(({key,type})=>{
     const el = document.getElementById("ef-"+key); if(!el) return;
     let nv = el.value.trim();
-    // Converti date ISO (YYYY-MM-DD) in formato italiano DD/MM/YYYY
     if(type==="date" && nv && /^\d{4}-\d{2}-\d{2}$/.test(nv)) {
-      const [y,m,d] = nv.split("-");
-      nv = d+"/"+m+"/"+y;
+      const [y,m,d] = nv.split("-"); nv = d+"/"+m+"/"+y;
     }
     const ov = String(r[key]||"").trim();
     const ovNorm = type==="date" ? (()=>{const dd=normalizeDate(ov);return dd?String(dd.getDate()).padStart(2,"0")+"/"+String(dd.getMonth()+1).padStart(2,"0")+"/"+dd.getFullYear():ov;})() : ov;
-    if(nv!==ovNorm && COL_MAP[key]) campi[COL_MAP[key]] = nv;
+    if(nv!==ovNorm && COL_MAP[key]) { campi[COL_MAP[key]]=nv; campiOld[COL_MAP[key]]=ov; }
   });
   if(Object.keys(campi).length===0){showToast("Nessuna modifica");closeEdit();return;}
   const rowId = curEditId;
   closeEdit(); closeCli();
-  showToast("💾 Salvataggio…");
-  const campiStr = encodeURIComponent(JSON.stringify(campi));
-  const url = SCRIPT_URL + "?action=edit&row=" + rowId + "&campi=" + campiStr;
+  const url = SCRIPT_URL + "?action=edit&row=" + rowId + "&campi=" + encodeURIComponent(JSON.stringify(campi));
+  const undoUrl = SCRIPT_URL + "?action=edit&row=" + rowId + "&campi=" + encodeURIComponent(JSON.stringify(campiOld));
   callScript(url);
-  showToast("✅ Salvato!");
+  showUndo("✅ Salvato!", undoUrl);
   setTimeout(()=>doRefresh(),2000);
 }
 
@@ -629,9 +626,26 @@ function saveNuova() {
 }
 
 let toastT;
+let lastUndo=null;
+
+function showUndo(msg,invertUrl){
+  lastUndo={url:invertUrl};
+  const t=document.getElementById("toast");
+  t.innerHTML=`${msg} <button onclick="doUndo()" style="margin-left:8px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:5px;padding:2px 8px;color:#fff;font-size:11px;cursor:pointer">↩ Annulla</button>`;
+  t.style.display="block";
+  t.style.background="#065f46";t.style.border="1px solid #10b981";
+  clearTimeout(toastT);toastT=setTimeout(()=>{t.style.display="none";lastUndo=null;},8000);
+}
+function doUndo(){
+  if(!lastUndo)return;
+  callScript(lastUndo.url);
+  showToast("↩ Annullato");lastUndo=null;
+  setTimeout(()=>doRefresh(),2000);
+}
+
 function showToast(msg){
   const t=document.getElementById("toast");
-  t.textContent=msg;t.style.display="block";
+  t.innerHTML=msg;t.style.display="block";
   t.style.background=msg.includes("❌")?"#7f1d1d":"#065f46";
   t.style.border=msg.includes("❌")?"1px solid #ef4444":"1px solid #10b981";
   clearTimeout(toastT);toastT=setTimeout(()=>t.style.display="none",3000);

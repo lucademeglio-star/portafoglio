@@ -124,7 +124,8 @@ td.nm{color:#93c5fd;font-weight:700}
       <div class="kpi k-blu"><div class="kpi-v v-blu" id="k-tot">0</div><div class="kpi-l">Totale</div></div>
     </div>
     <div class="tot-grand-lbl" id="tot-grand">…</div>
-    <button class="btn-refresh" onclick="doRefresh()">↻ Aggiorna</button>
+    <button class="btn-refresh" onclick="doRefresh()" style="font-size:16px;padding:8px 16px">↻ Aggiorna</button>
+        <button onclick="openNuova()" style="background:rgba(16,185,129,.2);border:1px solid rgba(16,185,129,.4);border-radius:7px;padding:8px 14px;color:#6ee7b7;font-size:18px;font-weight:900;cursor:pointer">＋</button>
   </div>
   <div id="main">
     <!-- SIDEBAR -->
@@ -162,7 +163,10 @@ td.nm{color:#93c5fd;font-weight:700}
     <div id="table-area">
       <div class="table-hdr">
         <div class="table-count" id="tbl-count">…</div>
-        <div style="font-size:10px;color:#475569">Clicca nome → scheda cliente · Clicca intestazione → ordina</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <div style="font-size:10px;color:#475569">Clicca nome → scheda · Intestazione → ordina</div>
+          <button onclick="openNuova()" style="background:linear-gradient(135deg,#059669,#10b981);border:none;border-radius:7px;padding:7px 14px;color:#fff;font-size:12px;font-weight:700;cursor:pointer">＋ Nuova riga</button>
+        </div>
       </div>
       <div id="tbl-wrap">
         <table>
@@ -211,6 +215,16 @@ td.nm{color:#93c5fd;font-weight:700}
 </div>
 
 <!-- CONFIRM -->
+<!-- NUOVA RIGA -->
+<div id="nuova-pnl" style="position:fixed;right:0;top:0;width:400px;height:100vh;background:#0c1830;border-left:1px solid rgba(59,130,246,.2);z-index:300;display:none;flex-direction:column;box-shadow:-8px 0 32px rgba(0,0,0,.5)">
+  <div style="background:linear-gradient(160deg,#0a1628,#111e3a);border-bottom:1px solid rgba(59,130,246,.2);padding:12px 14px;display:flex;align-items:center;gap:8px;flex-shrink:0">
+    <button onclick="closeNuova()" style="background:rgba(20,32,60,.9);border:1px solid rgba(59,130,246,.3);border-radius:7px;padding:7px 12px;color:#93c5fd;font-size:11px;font-weight:700;cursor:pointer">✕</button>
+    <div style="font-size:13px;font-weight:800;color:#f1f5f9;flex:1">➕ Nuova riga</div>
+    <button onclick="saveNuova()" style="background:linear-gradient(135deg,#059669,#10b981);border:none;border-radius:7px;padding:8px 14px;color:#fff;font-size:12px;font-weight:700;cursor:pointer">💾 Inserisci</button>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:14px" id="nuova-body"></div>
+</div>
+
 <div class="cfm-wrap" id="cfm-wrap">
   <div class="cfm-box">
     <div style="font-size:26px;margin-bottom:10px">🗑</div>
@@ -236,8 +250,8 @@ const CAMPI_EDIT=[
   {key:"contraente",label:"Contraente",type:"text"},
   {key:"ramo",label:"Ramo (cod.)",type:"text"},
   {key:"polizza",label:"N° Polizza",type:"text"},
-  {key:"scad",label:"SCAD",type:"text",ph:"GG/MM/AAAA"},
-  {key:"todo",label:"TO-DO",type:"text",ph:"GG/MM/AAAA"},
+  {key:"scad",label:"SCAD",type:"date"},
+  {key:"todo",label:"TO-DO",type:"date"},
   {key:"importo",label:"Importo (€)",type:"number"},
   {key:"rinn",label:"Rinnovo",type:"select",opts:["","S","N"]},
   {key:"fr",label:"FR",type:"text"},
@@ -340,11 +354,14 @@ function updateKPIs(){
   const tot=records.filter(r=>!isArr(r)).reduce((s,r)=>s+(parseFloat(r.importo)||0),0);
   document.getElementById("tot-grand").textContent=fmtEur(tot);
 }
-function getRami(){return[...new Set(records.map(r=>r.ramo).filter(r=>r&&r.trim()&&!isNaN(r)))].sort((a,b)=>+a-+b);}
+function getRami(){return[...new Set(records.map(r=>r.ramo).filter(r=>r&&r.trim()))].sort((a,b)=>{const na=!isNaN(a),nb=!isNaN(b);if(na&&nb)return +a-+b;if(na)return -1;if(nb)return 1;return a.localeCompare(b);});}
 function renderChips(){
-  document.getElementById("ch-ramo").innerHTML=getRami().map(r=>`<span class="chip${fRamo.includes(r)?" on":""}" onclick="togR('${r}')">${r}</span>`).join("");
-  document.getElementById("ch-stato").innerHTML=STATI.map(s=>`<span class="chip${fStato.includes(s)?" on":""}" onclick="togSt('${s}')">${s}</span>`).join("");
-  document.getElementById("ch-sett").innerHTML=SETTORI.map(s=>`<span class="chip${fSett.includes(s)?" on":""}" onclick="togSe('${s}')">${s}</span>`).join("");
+  const ramiCount={};records.forEach(r=>{if(r.ramo&&r.ramo.trim())ramiCount[r.ramo]=(ramiCount[r.ramo]||0)+1;});
+  document.getElementById("ch-ramo").innerHTML=getRami().map(r=>`<span class="chip${fRamo.includes(r)?" on":""}" onclick="togR('${r}')">${r} <span style="opacity:.6;font-size:9px">(${ramiCount[r]||0})</span></span>`).join("");
+  const statoCount={};records.forEach(r=>{if(r.stato)statoCount[r.stato]=(statoCount[r.stato]||0)+1;});
+  document.getElementById("ch-stato").innerHTML=STATI.filter(s=>statoCount[s]).map(s=>`<span class="chip${fStato.includes(s)?" on":""}" onclick="togSt('${s}')">${s} <span style="opacity:.6;font-size:9px">(${statoCount[s]||0})</span></span>`).join("");
+  const settCount={};records.forEach(r=>{if(r.settore)settCount[r.settore]=(settCount[r.settore]||0)+1;});
+  document.getElementById("ch-sett").innerHTML=SETTORI.filter(s=>settCount[s]).map(s=>`<span class="chip${fSett.includes(s)?" on":""}" onclick="togSe('${s}')">${s} <span style="opacity:.6;font-size:9px">(${settCount[s]||0})</span></span>`).join("");
 }
 function togR(v){fRamo=fRamo.includes(v)?fRamo.filter(x=>x!==v):[...fRamo,v];renderChips();renderTable();renderTotSett();}
 function togSt(v){fStato=fStato.includes(v)?fStato.filter(x=>x!==v):[...fStato,v];renderChips();renderTable();renderTotSett();}
@@ -453,40 +470,132 @@ function openDet(id){
   renderTable();
 }
 function closeDet(){curDetId=null;document.getElementById("det").classList.remove("open");renderTable();}
+
 function openEdit(id){
   const r=records.find(x=>x.id===id);if(!r)return;
   curEditId=id;
   document.getElementById("edit-name").textContent="✏️ "+r.contraente;
   let html="";
-  CAMPI_EDIT.forEach(({key,label,type,opts,ph})=>{
+  CAMPI_EDIT.forEach(({key,label,type,opts})=>{
     const val=String(r[key]||"");
     html+=`<div class="eg"><label class="el">${label}</label>`;
-    if(type==="select")html+=`<select class="es" id="ef-${key}"><option value=""></option>${opts.map(o=>`<option value="${esc(o)}"${o===val?" selected":""}>${esc(o)||"—"}</option>`).join("")}</select>`;
-    else if(type==="textarea")html+=`<textarea class="et" id="ef-${key}">${esc(val)}</textarea>`;
-    else if(type==="number")html+=`<input type="number" step="0.01" class="ei" id="ef-${key}" value="${val}">`;
-    else html+=`<input type="text" class="ei" id="ef-${key}" value="${esc(val)}" placeholder="${ph||""}">`;
+    if(type==="select") html+=`<select class="es" id="ef-${key}"><option value=""></option>${opts.map(o=>`<option value="${esc(o)}"${o===val?" selected":""}>${esc(o)||"—"}</option>`).join("")}</select>`;
+    else if(type==="textarea") html+=`<textarea class="et" id="ef-${key}">${esc(val)}</textarea>`;
+    else if(type==="number") html+=`<input type="number" step="0.01" class="ei" id="ef-${key}" value="${val}">`;
+    else if(type==="date"){const d=normDate(val);const iso=d?d.toISOString().slice(0,10):"";html+=`<input type="date" class="ei" id="ef-${key}" value="${iso}">`;}
+    else html+=`<input type="text" class="ei" id="ef-${key}" value="${esc(val)}">`;
     html+="</div>";
   });
   document.getElementById("edit-body").innerHTML=html;
   document.getElementById("edit-pnl").classList.add("open");
 }
 function closeEdit(){document.getElementById("edit-pnl").classList.remove("open");curEditId=null;}
+
 function callScript(url){
   let iframe=document.getElementById("script-iframe");
   if(!iframe){iframe=document.createElement("iframe");iframe.id="script-iframe";iframe.style.display="none";document.body.appendChild(iframe);}
   iframe.src=url;
 }
 
-async function saveEdit(){
+// Undo ultima operazione
+let lastUndo=null;
+function showUndo(msg,url,invertUrl){
+  lastUndo={url:invertUrl};
+  const t=document.getElementById("toast");
+  t.innerHTML=`${msg} <button onclick="doUndo()" style="margin-left:10px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:5px;padding:2px 8px;color:#fff;font-size:11px;cursor:pointer">↩ Annulla</button>`;
+  t.style.display="block";
+  t.style.background="#065f46";t.style.border="1px solid #10b981";
+  clearTimeout(toastT);toastT=setTimeout(()=>{t.style.display="none";lastUndo=null;},8000);
+}
+function doUndo(){
+  if(!lastUndo)return;
+  callScript(lastUndo.url);
+  showToast("↩ Operazione annullata");
+  lastUndo=null;
+  setTimeout(()=>doRefresh(),2000);
+}
+
+function saveEdit(){
   const r=records.find(x=>x.id===curEditId);if(!r)return;
-  const campi={};
-  CAMPI_EDIT.forEach(({key})=>{const el=document.getElementById("ef-"+key);if(!el)return;const nv=el.value.trim(),ov=String(r[key]||"").trim();if(nv!==ov&&COL_MAP[key])campi[COL_MAP[key]]=nv;});
+  const campi={},campiOld={};
+  CAMPI_EDIT.forEach(({key,type})=>{
+    const el=document.getElementById("ef-"+key);if(!el)return;
+    let nv=el.value.trim();
+    if(type==="date"&&nv&&/^\d{4}-\d{2}-\d{2}$/.test(nv)){
+      const[y,m,d]=nv.split("-");nv=d+"/"+m+"/"+y;
+    }
+    const ov=String(r[key]||"").trim();
+    const ovNorm=type==="date"?(()=>{const dd=normDate(ov);return dd?String(dd.getDate()).padStart(2,"0")+"/"+String(dd.getMonth()+1).padStart(2,"0")+"/"+dd.getFullYear():ov;})():ov;
+    if(nv!==ovNorm&&COL_MAP[key]){campi[COL_MAP[key]]=nv;campiOld[COL_MAP[key]]=ov;}
+  });
   if(Object.keys(campi).length===0){showToast("Nessuna modifica");closeEdit();return;}
   const rowId=curEditId;
-  closeEdit();showToast("💾 Salvataggio…");
+  closeEdit();
   const url=SCRIPT_URL+"?action=edit&row="+rowId+"&campi="+encodeURIComponent(JSON.stringify(campi));
+  const undoUrl=SCRIPT_URL+"?action=edit&row="+rowId+"&campi="+encodeURIComponent(JSON.stringify(campiOld));
   callScript(url);
-  showToast("✅ Salvato!");setTimeout(()=>doRefresh(),2000);
+  showUndo("✅ Salvato!",url,undoUrl);
+  setTimeout(()=>doRefresh(),2000);
+}
+
+// NUOVA RIGA
+const CAMPI_NUOVA=[
+  {key:"contraente",label:"Contraente",type:"text",req:true},
+  {key:"ramo",label:"Ramo (cod.)",type:"text"},
+  {key:"polizza",label:"N° Polizza",type:"text"},
+  {key:"scad",label:"SCAD",type:"date"},
+  {key:"todo",label:"TO-DO",type:"date"},
+  {key:"importo",label:"Importo (€)",type:"number"},
+  {key:"rinn",label:"Rinnovo",type:"select",opts:["","S","N"]},
+  {key:"fr",label:"FR",type:"text"},
+  {key:"settore",label:"Settore",type:"select",opts:SETTORI},
+  {key:"stato",label:"Stato",type:"select",opts:STATI},
+  {key:"targa",label:"Targa",type:"text"},
+  {key:"settori",label:"Settori",type:"text"},
+  {key:"nota1",label:"Nota 1",type:"textarea"},
+  {key:"nota2",label:"Nota 2",type:"textarea"},
+  {key:"capo",label:"Capo",type:"text"},
+  {key:"rami",label:"Rami",type:"text"},
+  {key:"indirizzo",label:"Indirizzo",type:"text"},
+  {key:"citta",label:"Città",type:"text"},
+  {key:"cell",label:"Cellulare",type:"text"},
+  {key:"email",label:"Email",type:"text"},
+  {key:"tipolCli",label:"Tipol. Cli",type:"text"},
+  {key:"sub",label:"Sub",type:"text"},
+  {key:"cf",label:"CF/Conv",type:"text"},
+];
+
+function openNuova(){
+  let html=`<div style="font-size:11px;color:#6ee7b7;padding:7px 9px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:7px;margin-bottom:12px">Compilare almeno <strong>Contraente</strong> e <strong>Stato</strong></div>`;
+  CAMPI_NUOVA.forEach(({key,label,type,opts,req})=>{
+    html+=`<div class="eg"><label class="el" style="${req?"color:#6ee7b7":""}">${label}${req?" *":""}</label>`;
+    if(type==="select")html+=`<select class="es" id="nf-${key}"><option value=""></option>${opts.map(o=>`<option value="${esc(o)}">${esc(o)||"—"}</option>`).join("")}</select>`;
+    else if(type==="textarea")html+=`<textarea class="et" id="nf-${key}"></textarea>`;
+    else if(type==="number")html+=`<input type="number" step="0.01" class="ei" id="nf-${key}">`;
+    else if(type==="date")html+=`<input type="date" class="ei" id="nf-${key}">`;
+    else html+=`<input type="text" class="ei" id="nf-${key}">`;
+    html+="</div>";
+  });
+  document.getElementById("nuova-body").innerHTML=html;
+  document.getElementById("nuova-pnl").style.display="flex";
+}
+function closeNuova(){document.getElementById("nuova-pnl").style.display="none";}
+function saveNuova(){
+  const contraente=document.getElementById("nf-contraente")?.value.trim();
+  if(!contraente){showToast("⚠ Contraente obbligatorio");return;}
+  const keys=["contraente","ramo","polizza","scad","todo","importo","rinn","fr","settore","stato","targa","settori","nota1","nota2","capo","rami","indirizzo","citta","cell","email","tipolCli","sub","cf"];
+  const valori=keys.map(k=>{
+    const el=document.getElementById("nf-"+k);
+    if(!el)return"";
+    let v=el.value.trim();
+    if(el.type==="date"&&v&&/^\d{4}-\d{2}-\d{2}$/.test(v)){const[y,m,d]=v.split("-");v=d+"/"+m+"/"+y;}
+    return v;
+  });
+  closeNuova();
+  const url=SCRIPT_URL+"?action=insert&valori="+encodeURIComponent(JSON.stringify(valori));
+  callScript(url);
+  showToast("✅ Riga inserita!");
+  setTimeout(()=>doRefresh(),2000);
 }
 
 function askDel(id){
