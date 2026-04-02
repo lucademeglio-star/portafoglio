@@ -100,15 +100,15 @@ input::placeholder{color:#334155}select option{background:#111e3a;color:#e2e8f0}
           <div class="kpi k-grn"><div class="kpi-v v-grn" id="k-att">0</div><div class="kpi-l">Attive</div></div>
           <div class="kpi k-blu"><div class="kpi-v v-blu" id="k-tot">0</div><div class="kpi-l">Tot</div></div>
         </div>
-        <button class="refresh-btn" onclick="doRefresh()">↻</button>
+        <button class="refresh-btn" onclick="doRefresh()" style="font-size:18px;padding:6px 12px;line-height:1">↻</button>
       </div>
     </div>
-    <div class="tabs">
+    <div style="display:flex;align-items:center;justify-content:space-between"><div class="tabs" style="flex:1">
       <button class="tab active" id="tab-lista" onclick="setTab('lista')">📋 Lista</button>
       <button class="tab" id="tab-arr" onclick="setTab('arr')">🔴 ARR</button>
       <button class="tab" id="tab-cerca" onclick="setTab('cerca')">🔍 Cerca</button>
       <button class="tab" id="tab-tot" onclick="setTab('tot')">📊 Tot</button>
-    </div>
+    </div><button onclick="openNuova()" style="background:rgba(16,185,129,.2);border:1px solid rgba(16,185,129,.4);border-radius:7px;padding:6px 12px;color:#6ee7b7;font-size:16px;font-weight:900;cursor:pointer;flex-shrink:0;margin-left:6px;margin-bottom:2px">＋</button></div>
   </div>
   <div id="content"></div>
 </div>
@@ -131,6 +131,16 @@ input::placeholder{color:#334155}select option{background:#111e3a;color:#e2e8f0}
   <div class="ov-body" id="edit-body"></div>
 </div>
 
+
+<!-- NUOVA RIGA OVERLAY -->
+<div class="overlay" id="nuova-ov" style="display:none;z-index:200">
+  <div class="ov-hdr">
+    <button class="btn-s" onclick="closeNuova()">✕ Annulla</button>
+    <div class="ov-title">➕ Nuova riga</div>
+    <button class="btn-p" onclick="saveNuova()">💾 Inserisci</button>
+  </div>
+  <div class="ov-body" id="nuova-body"></div>
+</div>
 <div id="confirm-box" class="confirm-box" style="display:none">
   <div class="confirm-inner">
     <div style="font-size:20px;margin-bottom:8px">🗑</div>
@@ -205,7 +215,7 @@ let records=[], curTab="lista", searchQ="", filtriSett=[], filtriStato=[], filtr
 
 // Rami disponibili estratti dai dati
 function getRami() {
-  const set = new Set(records.map(r=>r.ramo).filter(r=>r&&r.trim()&&!isNaN(r)));
+  const set = new Set(records.map(r=>r.ramo).filter(r=>r&&r.trim()));
   return [...set].sort((a,b)=>+a-+b);
 }
 
@@ -458,8 +468,8 @@ const CAMPI_EDIT = [
   {key:"contraente",label:"Contraente",type:"text"},
   {key:"ramo",label:"Ramo (cod.)",type:"text"},
   {key:"polizza",label:"N° Polizza",type:"text"},
-  {key:"scad",label:"SCAD",type:"text",ph:"GG/MM/AAAA"},
-  {key:"todo",label:"TO-DO",type:"text",ph:"GG/MM/AAAA"},
+  {key:"scad",label:"SCAD",type:"date"},
+  {key:"todo",label:"TO-DO",type:"date"},
   {key:"importo",label:"Importo (€)",type:"number"},
   {key:"rinn",label:"Rinnovo",type:"select",opts:["","S","N"]},
   {key:"fr",label:"FR",type:"text"},
@@ -495,6 +505,12 @@ function openEdit(id) {
     html += `<label style="font-size:8px;color:#64748b;text-transform:uppercase;letter-spacing:.07em;font-weight:700;display:block;margin-bottom:3px">${label}</label>`;
     if(type==="select") html+=`<select style="${stl}" id="ef-${key}"><option value=""></option>${opts.map(o=>`<option value="${esc(o)}"${o===val?" selected":""}>${esc(o)||"—"}</option>`).join("")}</select>`;
     else if(type==="textarea") html+=`<textarea style="${stl};resize:vertical;min-height:56px" id="ef-${key}">${esc(val)}</textarea>`;
+    else if(type==="date") {
+      // Converti data italiana DD/MM/YYYY o D-mmm-YY in formato ISO per il date picker
+      const d = normalizeDate(val);
+      const iso = d ? d.toISOString().slice(0,10) : "";
+      html+=`<input type="date" style="${stl}" id="ef-${key}" value="${iso}">`;
+    }
     else if(type==="number") html+=`<input type="number" step="0.01" style="${stl}" id="ef-${key}" value="${val}">`;
     else html+=`<input type="text" style="${stl}" id="ef-${key}" value="${esc(val)}" placeholder="${ph||""}">`;
     html += "</div>";
@@ -509,10 +525,17 @@ function closeEdit() { document.getElementById("edit-ov").style.display="none"; 
 async function saveEdit() {
   const r = records.find(x=>x.id===curEditId); if(!r) return;
   const campi = {};
-  CAMPI_EDIT.forEach(({key})=>{
+  CAMPI_EDIT.forEach(({key,type})=>{
     const el = document.getElementById("ef-"+key); if(!el) return;
-    const nv = el.value.trim(), ov = String(r[key]||"").trim();
-    if(nv!==ov && COL_MAP[key]) campi[COL_MAP[key]] = nv;
+    let nv = el.value.trim();
+    // Converti date ISO (YYYY-MM-DD) in formato italiano DD/MM/YYYY
+    if(type==="date" && nv && /^\d{4}-\d{2}-\d{2}$/.test(nv)) {
+      const [y,m,d] = nv.split("-");
+      nv = d+"/"+m+"/"+y;
+    }
+    const ov = String(r[key]||"").trim();
+    const ovNorm = type==="date" ? (()=>{const dd=normalizeDate(ov);return dd?String(dd.getDate()).padStart(2,"0")+"/"+String(dd.getMonth()+1).padStart(2,"0")+"/"+dd.getFullYear():ov;})() : ov;
+    if(nv!==ovNorm && COL_MAP[key]) campi[COL_MAP[key]] = nv;
   });
   if(Object.keys(campi).length===0){showToast("Nessuna modifica");closeEdit();return;}
   const rowId = curEditId;
@@ -535,6 +558,74 @@ function callScript(url) {
     document.body.appendChild(iframe);
   }
   iframe.src = url;
+}
+
+// NUOVA RIGA
+const CAMPI_NUOVA = [
+  {key:"contraente",label:"Contraente",type:"text",req:true},
+  {key:"ramo",label:"Ramo (cod.)",type:"text"},
+  {key:"polizza",label:"N° Polizza",type:"text"},
+  {key:"scad",label:"SCAD",type:"date"},
+  {key:"todo",label:"TO-DO",type:"date"},
+  {key:"importo",label:"Importo (€)",type:"number"},
+  {key:"rinn",label:"Rinnovo",type:"select",opts:["","S","N"]},
+  {key:"fr",label:"FR",type:"text"},
+  {key:"settore",label:"Settore",type:"select",opts:SETTORI},
+  {key:"stato",label:"Stato",type:"select",opts:STATI},
+  {key:"targa",label:"Targa",type:"text"},
+  {key:"settori",label:"Settori",type:"text"},
+  {key:"nota1",label:"Nota 1",type:"textarea"},
+  {key:"nota2",label:"Nota 2",type:"textarea"},
+  {key:"capo",label:"Capo",type:"text"},
+  {key:"rami",label:"Rami",type:"text"},
+  {key:"indirizzo",label:"Indirizzo",type:"text"},
+  {key:"citta",label:"Città",type:"text"},
+  {key:"cell",label:"Cellulare",type:"text"},
+  {key:"email",label:"Email",type:"text"},
+  {key:"tipolCli",label:"Tipol. Cli",type:"text"},
+  {key:"sub",label:"Sub",type:"text"},
+  {key:"cf",label:"CF/Conv",type:"text"},
+];
+
+function openNuova() {
+  const stl = "width:100%;background:rgba(20,32,60,.9);border:1px solid rgba(59,130,246,.3);border-radius:7px;padding:8px 10px;color:#f1f5f9;font-size:13px;outline:none;font-family:inherit";
+  let html = `<div style="font-size:10px;color:#6ee7b7;padding:7px 9px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:7px;margin-bottom:12px">Compilare almeno <strong>Contraente</strong> e <strong>Stato</strong></div>`;
+  html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">`;
+  CAMPI_NUOVA.forEach(({key,label,type,opts,req})=>{
+    const isWide = type==="textarea";
+    html += `<div style="${isWide?"grid-column:1/-1;":""}margin-bottom:4px">`;
+    html += `<label style="font-size:8px;color:${req?"#6ee7b7":"#64748b"};text-transform:uppercase;letter-spacing:.07em;font-weight:700;display:block;margin-bottom:3px">${label}${req?" *":""}</label>`;
+    if(type==="select") html+=`<select style="${stl}" id="nf-${key}"><option value=""></option>${opts.map(o=>`<option value="${esc(o)}">${esc(o)||"—"}</option>`).join("")}</select>`;
+    else if(type==="textarea") html+=`<textarea style="${stl};resize:vertical;min-height:56px" id="nf-${key}"></textarea>`;
+    else if(type==="number") html+=`<input type="number" step="0.01" style="${stl}" id="nf-${key}">`;
+    else if(type==="date") html+=`<input type="date" style="${stl}" id="nf-${key}">`;
+    else html+=`<input type="text" style="${stl}" id="nf-${key}">`;
+    html += "</div>";
+  });
+  html += "</div>";
+  document.getElementById("nuova-body").innerHTML = html;
+  document.getElementById("nuova-ov").style.display = "flex";
+}
+
+function closeNuova() { document.getElementById("nuova-ov").style.display="none"; }
+
+function saveNuova() {
+  const contraente = document.getElementById("nf-contraente")?.value.trim();
+  if(!contraente) { showToast("⚠ Contraente obbligatorio"); return; }
+  
+  // Costruisce array di 23 valori nell'ordine delle colonne
+  const keys = ["contraente","ramo","polizza","scad","todo","importo","rinn","fr","settore","stato","targa","settori","nota1","nota2","capo","rami","indirizzo","citta","cell","email","tipolCli","sub","cf"];
+  const valori = keys.map(k => {
+    const el = document.getElementById("nf-"+k);
+    return el ? el.value.trim() : "";
+  });
+  
+  closeNuova();
+  showToast("💾 Inserimento…");
+  const url = SCRIPT_URL + "?action=insert&valori=" + encodeURIComponent(JSON.stringify(valori));
+  callScript(url);
+  showToast("✅ Riga inserita!");
+  setTimeout(()=>doRefresh(), 2000);
 }
 
 let toastT;
