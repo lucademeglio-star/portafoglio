@@ -482,7 +482,7 @@ function openEdit(id){
     if(type==="select") html+=`<select class="es" id="ef-${key}"><option value=""></option>${opts.map(o=>`<option value="${esc(o)}"${o===val?" selected":""}>${esc(o)||"—"}</option>`).join("")}</select>`;
     else if(type==="textarea") html+=`<textarea class="et" id="ef-${key}">${esc(val)}</textarea>`;
     else if(type==="number") html+=`<input type="number" step="0.01" class="ei" id="ef-${key}" value="${val}">`;
-    else if(type==="date"){const d=normDate(val);const iso=d?d.toISOString().slice(0,10):"";html+=`<input type="date" class="ei" id="ef-${key}" value="${iso}">`;}
+    else if(type==="date"){const d=normDate(val);const iso=d?`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`:"";html+=`<input type="date" class="ei" id="ef-${key}" value="${iso}">`;}
     else html+=`<input type="text" class="ei" id="ef-${key}" value="${esc(val)}">`;
     html+="</div>";
   });

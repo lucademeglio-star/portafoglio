@@ -286,7 +286,7 @@ function cardHtml(r) {
   const impB=imp_flag?'<span style="font-size:11px;margin-right:3px">🔥</span>':"";
   const statoB=`<span class="badge" style="color:${sCol(r.stato)};background:${sCol(r.stato)}22">${esc(r.stato||"—")}</span>`;
   const imp=r.importo?`<span class="imp-badge">€${parseFloat(r.importo).toLocaleString("it-IT")}</span>`:"";
-  const sub=[r.settore,r.targa,r.settori].filter(Boolean).join(" · ");
+  const sub=[r.settore,r.ramo,r.targa,r.settori].filter(Boolean).join(" · ");
   const dateField=sortField==="scad"?r.scad:r.todo;
   const dateD=fmtFull(dateField);
   const pol=r.polizza?`<div class="pol-num">${String(r.polizza).slice(-6)}</div>`:"";
@@ -506,9 +506,8 @@ function openEdit(id) {
     if(type==="select") html+=`<select style="${stl}" id="ef-${key}"><option value=""></option>${opts.map(o=>`<option value="${esc(o)}"${o===val?" selected":""}>${esc(o)||"—"}</option>`).join("")}</select>`;
     else if(type==="textarea") html+=`<textarea style="${stl};resize:vertical;min-height:56px" id="ef-${key}">${esc(val)}</textarea>`;
     else if(type==="date") {
-      // Converti data italiana DD/MM/YYYY o D-mmm-YY in formato ISO per il date picker
       const d = normalizeDate(val);
-      const iso = d ? d.toISOString().slice(0,10) : "";
+      const iso = d ? `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}` : "";
       html+=`<input type="date" style="${stl}" id="ef-${key}" value="${iso}">`;
     }
     else if(type==="number") html+=`<input type="number" step="0.01" style="${stl}" id="ef-${key}" value="${val}">`;
