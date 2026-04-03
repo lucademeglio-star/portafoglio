@@ -450,18 +450,19 @@ function openDet(id){
       ["Cell",x.cell],["Email",x.email],["Tipol.",x.tipolCli],["Sub",x.sub],["CF/Conv",x.cf]
     ].filter(([,v])=>v&&String(v).trim()&&String(v).trim()!=="—");
 
+    const statoColor=sCol(x.stato);
     html+=`<div style="background:${arr?"rgba(249,115,22,.07)":"rgba(20,32,60,.6)"};border:1px solid ${arr?"rgba(249,115,22,.3)":"rgba(59,130,246,.12)"};${selected}border-left:3px solid ${arr?"#f97316":"#334155"};border-radius:7px;padding:10px;margin-bottom:8px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <div style="display:flex;gap:5px;align-items:center">
-          ${arr?'<span class="arr-bdg">ARR</span>':""}
-          <span class="bdg" style="color:${sCol(x.stato)};background:${sCol(x.stato)}22;font-size:9px;padding:2px 6px">${esc(x.stato||"—")}</span>
+        <div style="display:flex;gap:6px;align-items:center">
+          ${arr?'<span class="arr-bdg" style="font-size:11px;padding:3px 7px">ARR</span>':""}
+          <span style="font-size:12px;font-weight:900;color:${statoColor};background:${statoColor}33;border:1px solid ${statoColor}66;border-radius:5px;padding:3px 9px;letter-spacing:.03em">${esc(x.stato||"—")}</span>
         </div>
         <div style="display:flex;gap:5px">
-          <button onclick="openEdit(${x.id})" style="background:linear-gradient(135deg,#1d4ed8,#2563eb);border:none;border-radius:6px;padding:4px 8px;color:#fff;font-size:10px;font-weight:700;cursor:pointer">✏️</button>
-          <button onclick="askDel(${x.id})" style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);border-radius:6px;padding:4px 8px;color:#fca5a5;font-size:10px;font-weight:700;cursor:pointer">🗑</button>
+          <button onclick="openEdit(${x.id})" style="background:linear-gradient(135deg,#1d4ed8,#2563eb);border:none;border-radius:6px;padding:5px 10px;color:#fff;font-size:11px;font-weight:700;cursor:pointer">✏️ Modifica</button>
+          <button onclick="askDel(${x.id})" style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);border-radius:6px;padding:5px 8px;color:#fca5a5;font-size:11px;font-weight:700;cursor:pointer">🗑</button>
         </div>
       </div>
-      ${campi.map(([l,v])=>`<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(59,130,246,.06)"><span style="font-size:9px;color:#475569;text-transform:uppercase;font-weight:700;min-width:70px">${l}</span><span style="font-size:10px;color:#e2e8f0;text-align:right;word-break:break-word;max-width:180px">${esc(v||"")}</span></div>`).join("")}
+      ${campi.map(([l,v])=>`<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(59,130,246,.08)"><span style="font-size:10px;color:#94a3b8;text-transform:uppercase;font-weight:800;min-width:75px;letter-spacing:.04em">${l}</span><span style="font-size:11px;color:#f1f5f9;font-weight:600;text-align:right;word-break:break-word;max-width:180px">${esc(v||"")}</span></div>`).join("")}
     </div>`;
   });
 

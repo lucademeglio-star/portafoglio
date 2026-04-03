@@ -421,20 +421,21 @@ function openCli(nome) {
       ["Capo",r.capo],["Rami",r.rami],["Indirizzo",r.indirizzo],["Città",r.citta],
       ["Cell",r.cell],["Email",r.email],["Tipol. Cli",r.tipolCli],["Sub",r.sub],["CF/Conv",r.cf]
     ].filter(([,v])=>v&&String(v).trim()&&String(v).trim()!=="—");
+    const statoColor=sCol(r.stato);
     html+=`<div class="pol-card${arr?" arr":""}">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap">
-          ${arr?'<span class="arr-badge">ARR</span>':""}
-          <span class="badge" style="color:${sCol(r.stato)};background:${sCol(r.stato)}22;font-size:9px;padding:3px 7px">${esc(r.stato||"—")}</span>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          ${arr?'<span class="arr-badge" style="font-size:11px;padding:4px 8px">ARR</span>':""}
+          <span style="font-size:13px;font-weight:900;color:${statoColor};background:${statoColor}33;border:1px solid ${statoColor}66;border-radius:6px;padding:4px 10px;letter-spacing:.03em">${esc(r.stato||"—")}</span>
         </div>
         <div style="display:flex;gap:6px">
-          <button class="btn-p" style="padding:5px 10px;font-size:10px" onclick="openEdit(${r.id})">✏️ Modifica</button>
-          <button class="del-btn" onclick="askDelete(${r.id},'${esc(r.contraente)}')">🗑 Elimina</button>
+          <button class="btn-p" style="padding:6px 12px;font-size:11px" onclick="openEdit(${r.id})">✏️ Modifica</button>
+          <button class="del-btn" style="padding:6px 10px;font-size:11px" onclick="askDelete(${r.id},'${esc(r.contraente)}')">🗑</button>
         </div>
       </div>
-      ${campi.map(([l,v])=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(59,130,246,.06)">
-        <span style="font-size:9px;color:#475569;text-transform:uppercase;font-weight:700;min-width:80px">${l}</span>
-        <span style="font-size:11px;color:#e2e8f0;text-align:right;word-break:break-word;max-width:200px">${esc(v||"")}</span>
+      ${campi.map(([l,v])=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(59,130,246,.08)">
+        <span style="font-size:11px;color:#94a3b8;text-transform:uppercase;font-weight:800;min-width:85px;letter-spacing:.04em">${l}</span>
+        <span style="font-size:12px;color:#f1f5f9;font-weight:600;text-align:right;word-break:break-word;max-width:200px">${esc(v||"")}</span>
       </div>`).join("")}
     </div>`;
   });
