@@ -243,7 +243,7 @@ td.nm{color:#93c5fd;font-weight:700}
 const CSV_URL="https://docs.google.com/spreadsheets/d/1eptc1n6yyUfgKrqpppQtuYn7VDCE5CddSMHKf1Sj6hs/export?format=csv&gid=59454588";
 const SCRIPT_URL="https://script.google.com/macros/s/AKfycbzCeGfHs9fLXgwn0nTxX_28ncuJSKDjzqz0lpLahbdflGlo0K7uJDJUy4t-J1zuy7k26w/exec";
 const CSV_COLS=["contraente","ramo","polizza","scad","todo","importo","rinn","fr","settore","stato","targa","settori","nota1","nota2","capo","rami","indirizzo","citta","cell","email","tipolCli","sub","cf"];
-const SETTORI=["RCA","INFORTUNI","RCG","RDP","FURTO","ARRETRATO","SCREENING","#SALUTE","IRO","IMP","INF","VITA","VITA INDIVIDUALI","VITA-FONDI","TCM","CASA","CAT NAT","CAUZIONI","TRASPORTI","FAMIGLIA","DOC","MAL","MALATTIE","CVT","TOP","VARI","PROVV"];
+const SETTORI=["RCA","INFORTUNI","RCG","RDP","RDO","RGG","FURTO","FUR","ARRETRATO","SCREENING","#SALUTE","IRO","IMP","INC","INF","VITA","VITA INDIVIDUALI","VITA-FONDI","TCM","CASA","CAT NAT","CAUZIONI","CAUZIONE","TRASPORTI","FAMIGLIA","DOC","MAL","MALATTIE","CVT","TOP","VARI","PROVV"];
 const STATI=["ATTIVA","SCHEDA","PROSPETTIVA","RECUPERO","ARRETRATO","SOSPESA","DOCUMENTI","LISTE","PREV RCA URG","BPER","SENZA SPER","SINISTRO","SCAD","RIFORMA","BDA","CAT NAT"];
 const COL_MAP={contraente:1,ramo:2,polizza:3,scad:4,todo:5,importo:6,rinn:7,fr:8,settore:9,stato:10,targa:11,settori:12,nota1:13,nota2:14,capo:15,rami:16,indirizzo:17,citta:18,cell:19,email:20,tipolCli:21,sub:22,cf:23};
 const CAMPI_EDIT=[
@@ -252,7 +252,7 @@ const CAMPI_EDIT=[
   {key:"polizza",label:"N° Polizza",type:"text"},
   {key:"scad",label:"SCAD",type:"date"},
   {key:"todo",label:"TO-DO",type:"date"},
-  {key:"importo",label:"Importo (€)",type:"number"},
+  {key:"importo",label:"Imponibile (€)",type:"number"},
   {key:"rinn",label:"Rinnovo",type:"select",opts:["","S","N"]},
   {key:"fr",label:"FR",type:"text"},
   {key:"settore",label:"Settore",type:"select",opts:SETTORI},
@@ -577,7 +577,7 @@ const CAMPI_NUOVA=[
   {key:"polizza",label:"N° Polizza",type:"text"},
   {key:"scad",label:"SCAD",type:"date"},
   {key:"todo",label:"TO-DO",type:"date"},
-  {key:"importo",label:"Importo (€)",type:"number"},
+  {key:"importo",label:"Imponibile (€)",type:"number"},
   {key:"rinn",label:"Rinnovo",type:"select",opts:["","S","N"]},
   {key:"fr",label:"FR",type:"text"},
   {key:"settore",label:"Settore",type:"select",opts:SETTORI},

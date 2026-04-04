@@ -159,8 +159,8 @@ input::placeholder{color:#334155}select option{background:#111e3a;color:#e2e8f0}
 const CSV_URL = "https://docs.google.com/spreadsheets/d/1eptc1n6yyUfgKrqpppQtuYn7VDCE5CddSMHKf1Sj6hs/export?format=csv&gid=59454588";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzCeGfHs9fLXgwn0nTxX_28ncuJSKDjzqz0lpLahbdflGlo0K7uJDJUy4t-J1zuy7k26w/exec";
 const CSV_COLS = ["contraente","ramo","polizza","scad","todo","importo","rinn","fr","settore","stato","targa","settori","nota1","nota2","capo","rami","indirizzo","citta","cell","email","tipolCli","sub","cf"];
-const SETTORI = ["RCA","INFORTUNI","RCG","RDP","FURTO","ARRETRATO","SCREENING","#SALUTE","IRO","IMP","INF","VITA","VITA INDIVIDUALI","VITA-FONDI","TCM","CASA","CAT NAT","CAUZIONI","TRASPORTI","FAMIGLIA","DOC","MAL","MALATTIE","CVT","TOP","VARI","PROVV"];
-const STATI = ["ATTIVA","SCHEDA","PROSPETTIVA","RECUPERO","ARRETRATO","SOSPESA","DOCUMENTI","LISTE","PREV RCA URG","BPER","SENZA SPER","SINISTRO","SCAD","RIFORMA","BDA","CAT NAT"];
+const SETTORI = ["RCA","INFORTUNI","RCG","RDP","RDO","RGG","FURTO","FUR","ARRETRATO","SCREENING","#SALUTE","IRO","IMP","INC","INF","VITA","VITA INDIVIDUALI","VITA-FONDI","TCM","CASA","CAT NAT","CAUZIONI","CAUZIONE","TRASPORTI","FAMIGLIA","DOC","MAL","MALATTIE","CVT","TOP","VARI","PROVV"];
+const STATI = ["ATTIVA","PROSPETTIVA","OPPORTUNITA'","RECUPERO","ARRETRATO","SOSPESA","DOCUMENTI","LISTE","PREV RCA URG","BPER","SENZA SPER","SINISTRO","SCAD","RIFORMA","BDA","CAT NAT"];
 const STATO_COL = {ATTIVA:"#10b981",SCHEDA:"#3b82f6",PROSPETTIVA:"#a78bfa",RECUPERO:"#f59e0b",ARRETRATO:"#f97316",SOSPESA:"#6b7280",DOCUMENTI:"#06b6d4",BDA:"#8b5cf6"};
 
 const sCol = s => STATO_COL[s] || "#6b7280";
@@ -560,7 +560,7 @@ const CAMPI_EDIT = [
   {key:"polizza",label:"N° Polizza",type:"text"},
   {key:"scad",label:"SCAD",type:"date"},
   {key:"todo",label:"TO-DO",type:"date"},
-  {key:"importo",label:"Importo (€)",type:"number"},
+  {key:"importo",label:"Imponibile (€)",type:"number"},
   {key:"rinn",label:"Rinnovo",type:"select",opts:["","S","N"]},
   {key:"fr",label:"FR",type:"text"},
   {key:"settore",label:"Settore",type:"select",opts:SETTORI},
@@ -653,7 +653,7 @@ const CAMPI_NUOVA = [
   {key:"polizza",label:"N° Polizza",type:"text"},
   {key:"scad",label:"SCAD",type:"date"},
   {key:"todo",label:"TO-DO",type:"date"},
-  {key:"importo",label:"Importo (€)",type:"number"},
+  {key:"importo",label:"Imponibile (€)",type:"number"},
   {key:"rinn",label:"Rinnovo",type:"select",opts:["","S","N"]},
   {key:"fr",label:"FR",type:"text"},
   {key:"settore",label:"Settore",type:"select",opts:SETTORI},
