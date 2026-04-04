@@ -408,7 +408,7 @@ function renderTable(){
     const impB=imp_flag?'🔥 ':"";
     return `<tr class="${rowClass} ${curDetId===r.id?"sel":""}" onclick="openDet(${r.id})">
       <td>${fmtS(r.todo)}</td><td>${fmtS(r.scad)}</td>
-      <td class="nm">${impB}${arr?'<span class="arr-bdg">ARR</span> ':""}${esc(r.contraente||"—")}</td>
+      <td class="nm">${impB}${(r.settore||"").toUpperCase()==="ARRETRATO"?'<span class="arr-bdg">ARR</span> ':""}${esc(r.contraente||"—")}</td>
       <td><span class="bdg" style="color:${sCol(r.stato)};background:${sCol(r.stato)}22">${esc(r.stato||"—")}</span></td>
       <td>${esc(r.settore||"—")}</td><td>${esc(r.ramo||"—")}</td>
       <td style="font-family:monospace;font-size:11px">${r.polizza?String(r.polizza).slice(-7):"—"}</td>
@@ -461,7 +461,7 @@ function openDet(id){
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <div style="display:flex;gap:6px;align-items:center">
           ${imp_flag?'<span style="font-size:14px">🔥</span>':""}
-          ${arr?'<span class="arr-bdg" style="font-size:11px;padding:3px 7px">ARR</span>':""}
+          ${(x.settore||"").toUpperCase()==="ARRETRATO"?'<span class="arr-bdg" style="font-size:11px;padding:3px 7px">ARR</span>':""}
           <span style="font-size:12px;font-weight:900;color:${statoColor};background:${statoColor}33;border:1px solid ${statoColor}66;border-radius:5px;padding:3px 9px;letter-spacing:.03em">${esc(x.stato||"—")}</span>
         </div>
         <div style="display:flex;gap:5px">

@@ -281,7 +281,8 @@ function renderTab() {
 function cardHtml(r) {
   const arr=isArr(r);
   const imp_flag=(r.settore||"").toUpperCase()==="IMP";
-  const arrB=arr?'<span class="arr-badge">ARR</span> ':"";
+  // Mostra ARR solo se settore=ARRETRATO (non duplicare quando stato=ARR)
+  const arrB=(r.settore||"").toUpperCase()==="ARRETRATO"?'<span class="arr-badge">ARR</span> ':"";
   const impB=imp_flag?'<span style="font-size:13px;margin-right:3px">🔥</span>':"";
   const statoColor=sCol(r.stato);
   const statoB=`<span style="font-size:11px;font-weight:900;color:${statoColor};background:${statoColor}33;border:1px solid ${statoColor}66;border-radius:5px;padding:3px 8px;display:inline-block;letter-spacing:.03em">${esc(r.stato||"—")}</span>`;
@@ -432,7 +433,7 @@ function openCli(nome) {
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
         <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
           ${imp_flag?'<span style="font-size:14px">🔥</span>':""}
-          ${arr?'<span class="arr-badge" style="font-size:11px;padding:4px 8px">ARR</span>':""}
+          ${(r.settore||"").toUpperCase()==="ARRETRATO"?'<span class="arr-badge" style="font-size:11px;padding:4px 8px">ARR</span>':""}
           <span style="font-size:13px;font-weight:900;color:${statoColor};background:${statoColor}33;border:1px solid ${statoColor}66;border-radius:6px;padding:4px 10px;letter-spacing:.03em">${esc(r.stato||"—")}</span>
         </div>
         <div style="display:flex;gap:6px">
