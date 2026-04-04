@@ -299,16 +299,19 @@ const fmtS=s=>{const d=normDate(s);if(!d)return"—";return String(d.getDate()).
 const fmtF=s=>{const d=normDate(s);if(!d)return s||"—";return String(d.getDate()).padStart(2,"0")+"/"+String(d.getMonth()+1).padStart(2,"0")+"/"+d.getFullYear();};
 
 function scadenzaAlert(r) {
-  if (!isArr(r)) return "";
   const d = normDate(r.scad);
-  if (!d) return '<span style="font-size:10px;color:#94a3b8;margin-left:4px">📅 nessuna SCAD</span>';
+  if (!d) return "";
   const oggi = new Date(); oggi.setHours(0,0,0,0);
   const scad = new Date(d); scad.setHours(0,0,0,0);
   const diff = Math.floor((oggi - scad) / 86400000);
-  if (diff < 0) return `<span style="font-size:10px;color:#34d399;font-weight:700;margin-left:4px">⏳ scade in ${Math.abs(diff)}gg</span>`;
-  if (diff === 0) return `<span style="font-size:10px;color:#fbbf24;font-weight:700;margin-left:4px">⚠️ scade OGGI</span>`;
+  if (diff < -30) return "";
+  if (diff < 0) {
+    const color = diff > -8 ? "#fbbf24" : "#34d399";
+    return `<span style="font-size:10px;color:${color};font-weight:700;margin-left:4px">⏳ ${Math.abs(diff)}gg</span>`;
+  }
+  if (diff === 0) return `<span style="font-size:10px;color:#fbbf24;font-weight:900;margin-left:4px">⚠️ OGGI</span>`;
   const simboli = "🔔".repeat(Math.min(Math.floor(diff/5), 5));
-  return `<span style="font-size:10px;color:#f97316;font-weight:700;margin-left:4px">${simboli} ${diff}gg scaduto</span>`;
+  return `<span style="font-size:10px;color:#f97316;font-weight:700;margin-left:4px">${simboli} ${diff}gg</span>`;
 }
 
 
