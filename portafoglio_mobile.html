@@ -160,8 +160,8 @@ const CSV_URL = "https://docs.google.com/spreadsheets/d/1eptc1n6yyUfgKrqpppQtuYn
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzCeGfHs9fLXgwn0nTxX_28ncuJSKDjzqz0lpLahbdflGlo0K7uJDJUy4t-J1zuy7k26w/exec";
 const CSV_COLS = ["contraente","ramo","polizza","scad","todo","importo","rinn","fr","settore","stato","targa","settori","nota1","nota2","capo","rami","indirizzo","citta","cell","email","tipolCli","sub","cf"];
 const SETTORI = ["RCA","INFORTUNI","RCG","RDP","FURTO","ARRETRATO","SCREENING","#SALUTE","IRO","IMP","INF","VITA","VITA INDIVIDUALI","VITA-FONDI","TCM","CASA","CAT NAT","CAUZIONI","TRASPORTI","FAMIGLIA","DOC","MAL","MALATTIE","CVT","TOP","VARI","PROVV"];
-const STATI = ["ATTIVA","SCHEDA","PROSPETTIVA","RECUPERO","ARR","SOSPESA","DOCUMENTI","LISTE","PREV RCA URG","BPER","SENZA SPER","SINISTRO","SCAD","RIFORMA","BDA","CAT NAT"];
-const STATO_COL = {ATTIVA:"#10b981",SCHEDA:"#3b82f6",PROSPETTIVA:"#a78bfa",RECUPERO:"#f59e0b",ARR:"#f97316",SOSPESA:"#6b7280",DOCUMENTI:"#06b6d4",BDA:"#8b5cf6"};
+const STATI = ["ATTIVA","SCHEDA","PROSPETTIVA","RECUPERO","ARRETRATO","SOSPESA","DOCUMENTI","LISTE","PREV RCA URG","BPER","SENZA SPER","SINISTRO","SCAD","RIFORMA","BDA","CAT NAT"];
+const STATO_COL = {ATTIVA:"#10b981",SCHEDA:"#3b82f6",PROSPETTIVA:"#a78bfa",RECUPERO:"#f59e0b",ARRETRATO:"#f97316",SOSPESA:"#6b7280",DOCUMENTI:"#06b6d4",BDA:"#8b5cf6"};
 
 const sCol = s => STATO_COL[s] || "#6b7280";
 const isArr = r => (r.stato||"").toUpperCase()==="ARRETRATO";
@@ -169,7 +169,7 @@ const esc = s => String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replac
 const fmtEur = v => v!=null&&v!==""? "€ "+parseFloat(v).toLocaleString("it-IT",{minimumFractionDigits:2}) : "—";
 function statoBadge(stato, big=false) {
   const c = sCol(stato);
-  const isARR = (stato||"").toUpperCase()==="ARR";
+  const isARR = (stato||"").toUpperCase()==="ARRETRATO";
   const size = (big||isARR) ? "font-size:13px;font-weight:900;padding:4px 11px" : "font-size:11px;font-weight:800;padding:3px 8px";
   const shadow = isARR ? ";box-shadow:0 0 8px "+c+"88" : "";
   return `<span style="${size};color:#fff;background:${c};border:1.5px solid ${c}cc;border-radius:6px;display:inline-block;letter-spacing:.03em${shadow}">${esc(stato||"—")}</span>`;
@@ -295,6 +295,7 @@ function cardHtml(r) {
   const arr=isArr(r);
   const imp_flag=(r.settore||"").toUpperCase()==="IMP";
   const impB=imp_flag?'<span style="font-size:13px;margin-right:3px">🔥</span>':"";
+  const arrB=arr?'<span class="arr-badge" style="margin-right:3px">ARRETRATO</span>':"";
   const statoB=statoBadge(r.stato);
   const imp=r.importo?`<span style="font-size:10px;font-weight:700;color:#cbd5e1;padding:3px 7px;background:rgba(255,255,255,.08);border-radius:4px">€${parseFloat(r.importo).toLocaleString("it-IT")}</span>`:"";
   const sub=[r.settore,r.ramo,r.targa,r.settori].filter(Boolean).join(" · ");
@@ -447,7 +448,6 @@ function openCli(nome) {
         <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
           ${imp_flag?'<span style="font-size:14px">🔥</span>':""}
           ${statoBadge(r.stato,true)}
-          <span style="${statoStyle}">${esc(r.stato||"—")}</span>
         </div>
         <div style="display:flex;gap:6px">
           <button class="btn-p" style="padding:6px 12px;font-size:11px" onclick="openEdit(${r.id})">✏️ Modifica</button>
