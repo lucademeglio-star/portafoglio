@@ -96,7 +96,7 @@ input::placeholder{color:#334155}select option{background:#111e3a;color:#e2e8f0}
       <div><div class="logo">🛡 Portafoglio</div><div class="source" id="src-lbl">…</div></div>
       <div style="display:flex;gap:6px;align-items:center">
         <div class="kpis">
-          <div class="kpi k-red"><div class="kpi-v v-red" id="k-arr">0</div><div class="kpi-l">ARR</div></div>
+          <div class="kpi k-red"><div class="kpi-v v-red" id="k-arr">0</div><div class="kpi-l">Arretrato</div></div>
           <div class="kpi k-grn"><div class="kpi-v v-grn" id="k-att">0</div><div class="kpi-l">Attive</div></div>
           <div class="kpi k-blu"><div class="kpi-v v-blu" id="k-tot">0</div><div class="kpi-l">Tot</div></div>
         </div>
@@ -105,7 +105,7 @@ input::placeholder{color:#334155}select option{background:#111e3a;color:#e2e8f0}
     </div>
     <div style="display:flex;align-items:center;justify-content:space-between"><div class="tabs" style="flex:1">
       <button class="tab active" id="tab-lista" onclick="setTab('lista')">📋 Lista</button>
-      <button class="tab" id="tab-arr" onclick="setTab('arr')">🔴 ARR</button>
+      <button class="tab" id="tab-arr" onclick="setTab('arr')">🔴 ARRETRATO</button>
       <button class="tab" id="tab-cerca" onclick="setTab('cerca')">🔍 Cerca</button>
       <button class="tab" id="tab-tot" onclick="setTab('tot')">📊 Tot</button>
     </div><button onclick="openNuova()" style="background:rgba(16,185,129,.2);border:1px solid rgba(16,185,129,.4);border-radius:7px;padding:6px 12px;color:#6ee7b7;font-size:16px;font-weight:900;cursor:pointer;flex-shrink:0;margin-left:6px;margin-bottom:2px">＋</button></div>
@@ -164,7 +164,7 @@ const STATI = ["ATTIVA","SCHEDA","PROSPETTIVA","RECUPERO","ARR","SOSPESA","DOCUM
 const STATO_COL = {ATTIVA:"#10b981",SCHEDA:"#3b82f6",PROSPETTIVA:"#a78bfa",RECUPERO:"#f59e0b",ARR:"#f97316",SOSPESA:"#6b7280",DOCUMENTI:"#06b6d4",BDA:"#8b5cf6"};
 
 const sCol = s => STATO_COL[s] || "#6b7280";
-const isArr = r => (r.stato||"").toUpperCase()==="ARR" || (r.settore||"").toUpperCase()==="ARRETRATO";
+const isArr = r => (r.stato||"").toUpperCase()==="ARRETRATO";
 const esc = s => String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 const fmtEur = v => v!=null&&v!==""? "€ "+parseFloat(v).toLocaleString("it-IT",{minimumFractionDigits:2}) : "—";
 function statoBadge(stato, big=false) {
