@@ -274,14 +274,14 @@ const CAMPI_EDIT=[
 const STATO_COL={ATTIVA:"#10b981",SCHEDA:"#3b82f6",PROSPETTIVA:"#a78bfa",RECUPERO:"#f59e0b",ARR:"#f97316",ARRETRATO:"#f97316",SOSPESA:"#6b7280",DOCUMENTI:"#06b6d4",BDA:"#8b5cf6"};
 const sCol=s=>STATO_COL[s]||"#6b7280";
 const isArr=r=>(r.stato||"").toUpperCase()==="ARR"||(r.stato||"").toUpperCase()==="ARRETRATO"||(r.settore||"").toUpperCase()==="ARRETRATO";
+const esc=s=>String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+const fmtEur=v=>v!=null&&v!==""?"€ "+parseFloat(v).toLocaleString("it-IT",{minimumFractionDigits:2}):"—";
 function statoBadge(stato,big=false){
-  const c=sCol(stato);const isARR=(stato||"").toUpperCase()==="ARR";
+  const c=sCol(stato);const isARR=(stato||"").toUpperCase()==="ARR"||(stato||"").toUpperCase()==="ARRETRATO";
   const size=(big||isARR)?"font-size:13px;font-weight:900;padding:4px 11px":"font-size:11px;font-weight:800;padding:3px 8px";
   const shadow=isARR?";box-shadow:0 0 8px "+c+"88":"";
   return `<span style="${size};color:#fff;background:${c};border:1.5px solid ${c}cc;border-radius:6px;display:inline-block;letter-spacing:.03em${shadow}">${esc(stato||"—")}</span>`;
 }
-const esc=s=>String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-const fmtEur=v=>v!=null&&v!==""?"€ "+parseFloat(v).toLocaleString("it-IT",{minimumFractionDigits:2}):"—";
 const MESI_IT={gen:"Jan",feb:"Feb",mar:"Mar",apr:"Apr",mag:"May",giu:"Jun",lug:"Jul",ago:"Aug",set:"Sep",ott:"Oct",nov:"Nov",dic:"Dec"};
 function normDate(s){
   if(!s||typeof s!=="string")return null;
