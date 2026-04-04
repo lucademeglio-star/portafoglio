@@ -295,7 +295,6 @@ function cardHtml(r) {
   const arr=isArr(r);
   const imp_flag=(r.settore||"").toUpperCase()==="IMP";
   const impB=imp_flag?'<span style="font-size:13px;margin-right:3px">🔥</span>':"";
-  const arrB=arr?'<span class="arr-badge" style="margin-right:3px">ARRETRATO</span>':"";
   const statoB=statoBadge(r.stato);
   const imp=r.importo?`<span style="font-size:10px;font-weight:700;color:#cbd5e1;padding:3px 7px;background:rgba(255,255,255,.08);border-radius:4px">€${parseFloat(r.importo).toLocaleString("it-IT")}</span>`:"";
   const sub=[r.settore,r.ramo,r.targa,r.settori].filter(Boolean).join(" · ");
@@ -310,7 +309,7 @@ function cardHtml(r) {
       : "background:rgba(15,25,50,.9);border:1px solid rgba(59,130,246,.15);border-left:3px solid #334155";
   return `<div class="card" style="${borderStyle}">
     <div class="card-l">
-      <div class="card-name" onclick="openCli('${esc(r.contraente)}')">${impB}${arrB}${esc(r.contraente||"—")}</div>
+      <div class="card-name" onclick="openCli('${esc(r.contraente)}')">${impB}${esc(r.contraente||"—")}</div>
       <div class="card-sub">${esc(sub)}</div>
       <div class="card-tags" style="margin-top:5px">${statoB}${imp}${scadenzaAlert(r)}</div>
       ${nota1}${nota2}
