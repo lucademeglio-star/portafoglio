@@ -448,18 +448,32 @@ function openCli(nome) {
   const righe=[...records].filter(r=>r.contraente===nome).sort((a,b)=>(isArr(b)?1:0)-(isArr(a)?1:0)||dateVal(a.scad)-dateVal(b.scad));
   document.getElementById("cli-title").textContent="👤 "+nome;
 
-  // Dati anagrafici — priorità a riga SCHEDA, poi prima riga con almeno un campo compilato
-  const campiAna = ['indirizzo','citta','cell','email','cf','tipolCli'];
-  const hasAna = r => campiAna.some(k => r[k] && String(r[k]).trim());
-  const ref = righe.find(r => r.stato && r.stato.toUpperCase()==="SCHEDA" && hasAna(r))
-           || righe.find(r => hasAna(r))
-           || righe[0] || {};
+  // Dati anagrafici — per ogni campo prendo il primo valore non vuoto tra tutte le righe
+  const getAna = k => {
+    const scheda = righe.find(r => r.stato && r.stato.toUpperCase()==="SCHEDA" && r[k] && String(r[k]).trim());
+    if (scheda) return scheda[k];
+    const any = righe.find(r => r[k] && String(r[k]).trim());
+    return any ? any[k] : "";
+  };
+  const ref = {
+    indirizzo: getAna('indirizzo'),
+    citta:     getAna('citta'),
+    cell:      getAna('cell'),
+    email:     getAna('email'),
+    cf:        getAna('cf'),
+    tipolCli:  getAna('tipolCli'),
+    capo:      getAna('capo'),
+    rami:      getAna('rami'),
+  };
+  const campiAna = ['indirizzo','citta','cell','email','cf','tipolCli','capo','rami'];
   const anagrafica = [
     ["📍 Indirizzo", [ref.indirizzo, ref.citta].filter(Boolean).join(", ")],
     ["📞 Cellulare", ref.cell],
     ["✉️ Email", ref.email],
     ["🪪 CF/Conv", ref.cf],
     ["👤 Tipol.", ref.tipolCli],
+    ["🏢 Capo", ref.capo],
+    ["🔗 Rami", ref.rami],
   ].filter(([,v])=>v&&String(v).trim());
 
   let html = "";
