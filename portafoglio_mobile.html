@@ -223,7 +223,12 @@ let records=[], curTab="lista", searchQ="", filtriSett=[], filtriStato=[], filtr
 // Rami disponibili estratti dai dati
 function getRami() {
   const set = new Set(records.map(r=>r.ramo).filter(r=>r&&r.trim()));
-  return [...set].sort((a,b)=>+a-+b);
+  return [...set].sort((a,b)=>{
+    const na=!isNaN(a), nb=!isNaN(b);
+    if(na&&nb) return +a-+b;
+    if(na) return -1; if(nb) return 1;
+    return a.localeCompare(b);
+  });
 }
 
 setTimeout(()=>{ const b=document.getElementById("retry-btn"); if(b)b.style.display="block"; },15000);
