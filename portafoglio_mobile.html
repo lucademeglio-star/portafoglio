@@ -312,7 +312,7 @@ function cardHtml(r) {
     <div class="card-l">
       <div class="card-name" onclick="openCli('${esc(r.contraente)}')">${impB}${arrB}${esc(r.contraente||"—")}</div>
       <div class="card-sub">${esc(sub)}</div>
-      <div class="card-tags" style="margin-top:5px">${statoB}${imp}</div>
+      <div class="card-tags" style="margin-top:5px">${statoB}${imp}${scadenzaAlert(r)}</div>
       ${nota1}${nota2}
     </div>
     <div class="card-r">
@@ -344,8 +344,28 @@ function renderLista() {
 function setSortField(f){sortField=f;renderLista();}
 function toggleDir(){sortDir=sortDir==="asc"?"desc":"asc";renderLista();}
 
+function scadenzaAlert(r) {
+  if (!isArr(r)) return "";
+  const d = normalizeDate(r.scad);
+  if (!d) return '<span style="font-size:10px;color:#94a3b8;margin-left:4px">📅 nessuna SCAD</span>';
+  const oggi = new Date(); oggi.setHours(0,0,0,0);
+  const scad = new Date(d); scad.setHours(0,0,0,0);
+  const diff = Math.floor((oggi - scad) / 86400000); // giorni passati dalla scadenza
+  if (diff < 0) {
+    // Non ancora scaduto — mancano giorni
+    return `<span style="font-size:10px;color:#34d399;font-weight:700;margin-left:4px">⏳ scade in ${Math.abs(diff)}gg</span>`;
+  }
+  if (diff === 0) {
+    return `<span style="font-size:10px;color:#fbbf24;font-weight:700;margin-left:4px">⚠️ scade OGGI</span>`;
+  }
+  // Scaduto — calcola simbolini ogni 5 giorni
+  const livello = Math.floor(diff / 5);
+  const simboli = "🔔".repeat(Math.min(livello, 5)); // max 5
+  return `<span style="font-size:10px;color:#f97316;font-weight:700;margin-left:4px">${simboli} ${diff}gg scaduto</span>`;
+}
+
+
 function renderArr() {
-  const lista=[...records].filter(r=>isArr(r)).sort((a,b)=>dateVal(a.todo)-dateVal(b.todo));
   document.getElementById("content").innerHTML=`<div class="sec-label">🔴 ${lista.length} arretrati</div>`
     +(lista.length===0?`<div class="empty">✅ Nessun arretrato</div>`:lista.map(r=>cardHtml(r)).join(""));
 }
