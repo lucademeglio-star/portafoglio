@@ -244,7 +244,7 @@ const CSV_URL="https://docs.google.com/spreadsheets/d/1eptc1n6yyUfgKrqpppQtuYn7V
 const SCRIPT_URL="https://script.google.com/macros/s/AKfycbzCeGfHs9fLXgwn0nTxX_28ncuJSKDjzqz0lpLahbdflGlo0K7uJDJUy4t-J1zuy7k26w/exec";
 const CSV_COLS=["contraente","ramo","polizza","scad","todo","importo","rinn","fr","settore","stato","targa","settori","nota1","nota2","capo","rami","indirizzo","citta","cell","email","tipolCli","sub","cf"];
 const SETTORI=["RCA","INFORTUNI","RCG","RDP","FURTO","ARRETRATO","SCREENING","#SALUTE","IRO","IMP","INF","VITA","VITA INDIVIDUALI","VITA-FONDI","TCM","CASA","CAT NAT","CAUZIONI","TRASPORTI","FAMIGLIA","DOC","MAL","MALATTIE","CVT","TOP","VARI","PROVV"];
-const STATI=["ATTIVA","SCHEDA","PROSPETTIVA","RECUPERO","ARR","SOSPESA","DOCUMENTI","LISTE","PREV RCA URG","BPER","SENZA SPER","SINISTRO","SCAD","RIFORMA","BDA","CAT NAT"];
+const STATI=["ATTIVA","SCHEDA","PROSPETTIVA","RECUPERO","ARR","ARRETRATO","SOSPESA","DOCUMENTI","LISTE","PREV RCA URG","BPER","SENZA SPER","SINISTRO","SCAD","RIFORMA","BDA","CAT NAT"];
 const COL_MAP={contraente:1,ramo:2,polizza:3,scad:4,todo:5,importo:6,rinn:7,fr:8,settore:9,stato:10,targa:11,settori:12,nota1:13,nota2:14,capo:15,rami:16,indirizzo:17,citta:18,cell:19,email:20,tipolCli:21,sub:22,cf:23};
 const CAMPI_EDIT=[
   {key:"contraente",label:"Contraente",type:"text"},
@@ -271,9 +271,15 @@ const CAMPI_EDIT=[
   {key:"sub",label:"Sub",type:"text"},
   {key:"cf",label:"CF/Conv",type:"text"},
 ];
-const STATO_COL={ATTIVA:"#10b981",SCHEDA:"#3b82f6",PROSPETTIVA:"#a78bfa",RECUPERO:"#f59e0b",ARR:"#ef4444",SOSPESA:"#6b7280",DOCUMENTI:"#06b6d4",BDA:"#8b5cf6"};
+const STATO_COL={ATTIVA:"#10b981",SCHEDA:"#3b82f6",PROSPETTIVA:"#a78bfa",RECUPERO:"#f59e0b",ARR:"#f97316",ARRETRATO:"#f97316",SOSPESA:"#6b7280",DOCUMENTI:"#06b6d4",BDA:"#8b5cf6"};
 const sCol=s=>STATO_COL[s]||"#6b7280";
-const isArr=r=>(r.stato||"").toUpperCase()==="ARR"||(r.settore||"").toUpperCase()==="ARRETRATO";
+const isArr=r=>(r.stato||"").toUpperCase()==="ARR"||(r.stato||"").toUpperCase()==="ARRETRATO"||(r.settore||"").toUpperCase()==="ARRETRATO";
+function statoBadge(stato,big=false){
+  const c=sCol(stato);const isARR=(stato||"").toUpperCase()==="ARR";
+  const size=(big||isARR)?"font-size:13px;font-weight:900;padding:4px 11px":"font-size:11px;font-weight:800;padding:3px 8px";
+  const shadow=isARR?";box-shadow:0 0 8px "+c+"88":"";
+  return `<span style="${size};color:#fff;background:${c};border:1.5px solid ${c}cc;border-radius:6px;display:inline-block;letter-spacing:.03em${shadow}">${esc(stato||"—")}</span>`;
+}
 const esc=s=>String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 const fmtEur=v=>v!=null&&v!==""?"€ "+parseFloat(v).toLocaleString("it-IT",{minimumFractionDigits:2}):"—";
 const MESI_IT={gen:"Jan",feb:"Feb",mar:"Mar",apr:"Apr",mag:"May",giu:"Jun",lug:"Jul",ago:"Aug",set:"Sep",ott:"Oct",nov:"Nov",dic:"Dec"};
@@ -408,8 +414,8 @@ function renderTable(){
     const impB=imp_flag?'🔥 ':"";
     return `<tr class="${rowClass} ${curDetId===r.id?"sel":""}" onclick="openDet(${r.id})">
       <td>${fmtS(r.todo)}</td><td>${fmtS(r.scad)}</td>
-      <td class="nm">${impB}${(r.settore||"").toUpperCase()==="ARRETRATO"?'<span class="arr-bdg">ARR</span> ':""}${esc(r.contraente||"—")}</td>
-      <td><span class="bdg" style="color:${sCol(r.stato)};background:${sCol(r.stato)}22">${esc(r.stato||"—")}</span></td>
+      <td class="nm">${impB}${esc(r.contraente||"—")}</td>
+      <td>${statoBadge(r.stato)}</td>
       <td>${esc(r.settore||"—")}</td><td>${esc(r.ramo||"—")}</td>
       <td style="font-family:monospace;font-size:11px">${r.polizza?String(r.polizza).slice(-7):"—"}</td>
       <td>${imp}</td><td>${esc(r.targa||"—")}</td>
@@ -461,7 +467,7 @@ function openDet(id){
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <div style="display:flex;gap:6px;align-items:center">
           ${imp_flag?'<span style="font-size:14px">🔥</span>':""}
-          ${(x.settore||"").toUpperCase()==="ARRETRATO"?'<span class="arr-bdg" style="font-size:11px;padding:3px 7px">ARR</span>':""}
+          ${statoBadge(x.stato,true)}
           <span style="font-size:12px;font-weight:900;color:${statoColor};background:${statoColor}33;border:1px solid ${statoColor}66;border-radius:5px;padding:3px 9px;letter-spacing:.03em">${esc(x.stato||"—")}</span>
         </div>
         <div style="display:flex;gap:5px">
