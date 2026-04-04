@@ -450,10 +450,17 @@ function openDet(id){
       ["Cell",x.cell],["Email",x.email],["Tipol.",x.tipolCli],["Sub",x.sub],["CF/Conv",x.cf]
     ].filter(([,v])=>v&&String(v).trim()&&String(v).trim()!=="—");
 
+    const imp_flag=(x.settore||"").toUpperCase()==="IMP";
     const statoColor=sCol(x.stato);
-    html+=`<div style="background:${arr?"rgba(249,115,22,.07)":"rgba(20,32,60,.6)"};border:1px solid ${arr?"rgba(249,115,22,.3)":"rgba(59,130,246,.12)"};${selected}border-left:3px solid ${arr?"#f97316":"#334155"};border-radius:7px;padding:10px;margin-bottom:8px">
+    const cardBg = imp_flag
+      ? `background:rgba(239,68,68,.18);border:1px solid rgba(239,68,68,.5);${selected}border-left:4px solid #ef4444;box-shadow:0 0 8px rgba(239,68,68,.15)`
+      : arr
+        ? `background:rgba(249,115,22,.07);border:1px solid rgba(249,115,22,.3);${selected}border-left:4px solid #f97316`
+        : `background:rgba(20,32,60,.6);border:1px solid rgba(59,130,246,.12);${selected}border-left:3px solid #334155`;
+    html+=`<div style="${cardBg};border-radius:7px;padding:10px;margin-bottom:8px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <div style="display:flex;gap:6px;align-items:center">
+          ${imp_flag?'<span style="font-size:14px">🔥</span>':""}
           ${arr?'<span class="arr-bdg" style="font-size:11px;padding:3px 7px">ARR</span>':""}
           <span style="font-size:12px;font-weight:900;color:${statoColor};background:${statoColor}33;border:1px solid ${statoColor}66;border-radius:5px;padding:3px 9px;letter-spacing:.03em">${esc(x.stato||"—")}</span>
         </div>

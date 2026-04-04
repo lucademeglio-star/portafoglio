@@ -413,18 +413,17 @@ function openCli(nome) {
   let html=`<div class="sec-label">${righe.length} righe</div>`;
   righe.forEach(r=>{
     const arr=isArr(r);
-    const campi=[
-      ["Contraente",r.contraente],["Ramo",r.ramo],["Polizza",r.polizza],
-      ["SCAD",r.scad],["TO-DO",r.todo],["Importo",fmtEur(r.importo)],
-      ["Rinn",r.rinn],["FR",r.fr],["Settore",r.settore],["Stato",r.stato],
-      ["Targa",r.targa],["Settori",r.settori],["Nota 1",r.nota1],["Nota 2",r.nota2],
-      ["Capo",r.capo],["Rami",r.rami],["Indirizzo",r.indirizzo],["Città",r.citta],
-      ["Cell",r.cell],["Email",r.email],["Tipol. Cli",r.tipolCli],["Sub",r.sub],["CF/Conv",r.cf]
-    ].filter(([,v])=>v&&String(v).trim()&&String(v).trim()!=="—");
+    const imp_flag=(r.settore||"").toUpperCase()==="IMP";
     const statoColor=sCol(r.stato);
-    html+=`<div class="pol-card${arr?" arr":""}">
+    const cardBg = imp_flag
+      ? "background:rgba(239,68,68,.18);border:1px solid rgba(239,68,68,.5);border-left:4px solid #ef4444;box-shadow:0 0 8px rgba(239,68,68,.15)"
+      : arr
+        ? "background:rgba(249,115,22,.12);border:1px solid rgba(249,115,22,.3);border-left:4px solid #f97316"
+        : "background:rgba(20,32,60,.7);border:1px solid rgba(59,130,246,.12);border-left:3px solid #334155";
+    html+=`<div style="${cardBg};border-radius:8px;padding:10px;margin-bottom:8px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
         <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          ${imp_flag?'<span style="font-size:14px">🔥</span>':""}
           ${arr?'<span class="arr-badge" style="font-size:11px;padding:4px 8px">ARR</span>':""}
           <span style="font-size:13px;font-weight:900;color:${statoColor};background:${statoColor}33;border:1px solid ${statoColor}66;border-radius:6px;padding:4px 10px;letter-spacing:.03em">${esc(r.stato||"—")}</span>
         </div>
