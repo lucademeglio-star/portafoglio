@@ -445,46 +445,75 @@ function renderTot() {
 
 // CLIENTE
 function openCli(nome) {
-  const righe=[...records].filter(r=>r.contraente===nome).sort((a,b)=>(isArr(b)?1:0)-(isArr(a)?1:0)||dateVal(a.todo)-dateVal(b.todo));
+  const righe=[...records].filter(r=>r.contraente===nome).sort((a,b)=>(isArr(b)?1:0)-(isArr(a)?1:0)||dateVal(a.scad)-dateVal(b.scad));
   document.getElementById("cli-title").textContent="👤 "+nome;
-  let html=`<div class="sec-label">${righe.length} righe</div>`;
+
+  // Dati anagrafici — priorità a riga SCHEDA, poi prima riga con almeno un campo compilato
+  const campiAna = ['indirizzo','citta','cell','email','cf','tipolCli'];
+  const hasAna = r => campiAna.some(k => r[k] && String(r[k]).trim());
+  const ref = righe.find(r => r.stato && r.stato.toUpperCase()==="SCHEDA" && hasAna(r))
+           || righe.find(r => hasAna(r))
+           || righe[0] || {};
+  const anagrafica = [
+    ["📍 Indirizzo", [ref.indirizzo, ref.citta].filter(Boolean).join(", ")],
+    ["📞 Cellulare", ref.cell],
+    ["✉️ Email", ref.email],
+    ["🪪 CF/Conv", ref.cf],
+    ["👤 Tipol.", ref.tipolCli],
+  ].filter(([,v])=>v&&String(v).trim());
+
+  let html = "";
+
+  // Sezione anagrafica
+  if (anagrafica.length > 0) {
+    html += `<div style="background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:8px;padding:10px 12px;margin-bottom:10px">
+      <div style="font-size:9px;color:#475569;text-transform:uppercase;font-weight:700;letter-spacing:.08em;margin-bottom:6px">Dati cliente</div>
+      ${anagrafica.map(([l,v])=>`<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(59,130,246,.06)">
+        <span style="font-size:11px;color:#64748b;font-weight:700">${l}</span>
+        <span style="font-size:11px;color:#e2e8f0;font-weight:600;text-align:right;max-width:200px;word-break:break-word">${esc(v)}</span>
+      </div>`).join("")}
+    </div>`;
+  }
+
+  html += `<div class="sec-label">${righe.length} polizz${righe.length===1?"a":"e"}</div>`;
+
+  // Polizze — senza campi anagrafici
   righe.forEach(r=>{
     const arr=isArr(r);
     const imp_flag=(r.settore||"").toUpperCase()==="IMP";
-    const statoColor=sCol(r.stato);
-    const statoStyle=arr
-      ? `font-size:14px;font-weight:900;color:${statoColor};background:${statoColor}44;border:2px solid ${statoColor};border-radius:6px;padding:5px 12px;letter-spacing:.03em;animation:pulse 1.5s ease-in-out infinite`
-      : `font-size:13px;font-weight:900;color:${statoColor};background:${statoColor}33;border:1px solid ${statoColor}66;border-radius:6px;padding:4px 10px;letter-spacing:.03em`;
     const campi=[
-      ["Contraente",r.contraente],["Ramo",r.ramo],["Polizza",r.polizza],
-      ["SCAD",r.scad],["TO-DO",r.todo],["Importo",fmtEur(r.importo)],
-      ["Rinn",r.rinn],["FR",r.fr],["Settore",r.settore],["Stato",r.stato],
-      ["Targa",r.targa],["Settori",r.settori],["Nota 1",r.nota1],["Nota 2",r.nota2],
-      ["Capo",r.capo],["Rami",r.rami],["Indirizzo",r.indirizzo],["Città",r.citta],
-      ["Cell",r.cell],["Email",r.email],["Tipol. Cli",r.tipolCli],["Sub",r.sub],["CF/Conv",r.cf]
-    ].filter(([,v])=>v&&String(v).trim()&&String(v).trim()!=="—");
+      ["Ramo",r.ramo],["Polizza",r.polizza],
+      ["SCAD",r.scad?fmtFull(r.scad):""],["TO-DO",r.todo?fmtFull(r.todo):""],
+      ["Importo",r.importo?fmtEur(r.importo):""],
+      ["Rinn",r.rinn],["FR",r.fr],["Settore",r.settore],
+      ["Targa",r.targa],["Settori",r.settori],
+      ["Nota 1",r.nota1],["Nota 2",r.nota2],
+      ["Capo",r.capo],["Rami",r.rami],["Sub",r.sub],
+    ].filter(([,v])=>v&&String(v).trim());
     const cardBg = imp_flag
       ? "background:rgba(239,68,68,.18);border:1px solid rgba(239,68,68,.5);border-left:4px solid #ef4444;box-shadow:0 0 8px rgba(239,68,68,.15)"
       : arr
         ? "background:rgba(249,115,22,.12);border:1px solid rgba(249,115,22,.3);border-left:4px solid #f97316"
         : "background:rgba(20,32,60,.7);border:1px solid rgba(59,130,246,.12);border-left:3px solid #334155";
     html+=`<div style="${cardBg};border-radius:8px;padding:10px;margin-bottom:8px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
           ${imp_flag?'<span style="font-size:14px">🔥</span>':""}
           ${statoBadge(r.stato,true)}
+          ${scadenzaAlert(r)}
         </div>
         <div style="display:flex;gap:6px">
           <button class="btn-p" style="padding:6px 12px;font-size:11px" onclick="openEdit(${r.id})">✏️ Modifica</button>
           <button class="del-btn" style="padding:6px 10px;font-size:11px" onclick="askDelete(${r.id},'${esc(r.contraente)}')">🗑</button>
         </div>
       </div>
-      ${campi.map(([l,v])=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(59,130,246,.08)">
-        <span style="font-size:11px;color:#94a3b8;text-transform:uppercase;font-weight:800;min-width:85px;letter-spacing:.04em">${l}</span>
+      ${campi.map(([l,v])=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(59,130,246,.08)">
+        <span style="font-size:11px;color:#94a3b8;text-transform:uppercase;font-weight:800;min-width:80px;letter-spacing:.04em">${l}</span>
         <span style="font-size:12px;color:#f1f5f9;font-weight:600;text-align:right;word-break:break-word;max-width:200px">${esc(v||"")}</span>
       </div>`).join("")}
     </div>`;
   });
+
   document.getElementById("cli-body").innerHTML=html;
   document.getElementById("cli-ov").style.display="flex";
 }
