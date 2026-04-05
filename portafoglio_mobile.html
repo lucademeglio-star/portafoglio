@@ -160,8 +160,20 @@ const CSV_URL = "https://docs.google.com/spreadsheets/d/1eptc1n6yyUfgKrqpppQtuYn
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzCeGfHs9fLXgwn0nTxX_28ncuJSKDjzqz0lpLahbdflGlo0K7uJDJUy4t-J1zuy7k26w/exec";
 const CSV_COLS = ["contraente","ramo","polizza","scad","todo","importo","rinn","fr","settore","stato","targa","settori","nota1","nota2","capo","rami","indirizzo","citta","cell","email","tipolCli","sub","cf"];
 const SETTORI = ["RCA","INFORTUNI","RCG","RDP","RDO","RGG","FURTO","FUR","ARRETRATO","SCREENING","#SALUTE","IRO","IMP","INC","INF","VITA","VITA INDIVIDUALI","VITA-FONDI","TCM","CASA","CAT NAT","CAUZIONI","CAUZIONE","TRASPORTI","FAMIGLIA","DOC","MAL","MALATTIE","CVT","TOP","VARI","PROVV"];
-const STATI = ["ATTIVA","PROSPETTIVA","OPPORTUNITA'","RECUPERO","ARRETRATO","SOSPESA","DOCUMENTI","LISTE","PREV RCA URG","BPER","SENZA SPER","SINISTRO","SCAD","RIFORMA","BDA","CAT NAT"];
-const STATO_COL = {ATTIVA:"#10b981",SCHEDA:"#3b82f6",PROSPETTIVA:"#a78bfa",RECUPERO:"#f59e0b",ARRETRATO:"#f97316",SOSPESA:"#6b7280",DOCUMENTI:"#06b6d4",BDA:"#8b5cf6"};
+const STATI = ["ATTIVA","PROSPETTIVA","OPPORTUNITA'","RECUPERO","ARRETRATO","SOSPESA","DOCUMENTI","LISTE","PREV RCA URG","BPER","SENZA SPER","SINISTRO","SCAD","RIFORMA","BDA","CAT NAT","TELEFONARE","PASSARE","RISCONTRO","APPUNTAMENTO","EMAIL","PREVENTIVO"];
+const STATO_COL = {ATTIVA:"#10b981",PROSPETTIVA:"#a78bfa",RECUPERO:"#f59e0b",ARRETRATO:"#f97316",SOSPESA:"#6b7280",DOCUMENTI:"#06b6d4",BDA:"#8b5cf6",TELEFONARE:"#0d9488",PASSARE:"#0891b2",RISCONTRO:"#7c3aed",APPUNTAMENTO:"#ca8a04",EMAIL:"#2563eb",PREVENTIVO:"#9d6d2e"};
+
+// Agenda — config per tipo
+const AGENDA_TIPI = {
+  TELEFONARE:   {emoji:"📞", color:"#0d9488"},
+  PASSARE:      {emoji:"🚶", color:"#0891b2"},
+  RISCONTRO:    {emoji:"🔄", color:"#7c3aed"},
+  APPUNTAMENTO: {emoji:"📅", color:"#ca8a04"},
+  EMAIL:        {emoji:"✉️",  color:"#2563eb"},
+  PREVENTIVO:   {emoji:"📋", color:"#9d6d2e"},
+};
+const isAgenda = r => !!(AGENDA_TIPI[(r.stato||"").toUpperCase()]);
+
 
 const sCol = s => STATO_COL[s] || "#6b7280";
 const isArr = r => (r.stato||"").toUpperCase()==="ARRETRATO";
@@ -293,7 +305,33 @@ function renderTab() {
 
 function cardHtml(r) {
   const arr=isArr(r);
+  const agenda=isAgenda(r);
   const imp_flag=(r.settore||"").toUpperCase()==="IMP";
+
+  // CARD AGENDA
+  if (agenda) {
+    const tipo = AGENDA_TIPI[(r.stato||"").toUpperCase()];
+    const todoD = r.todo ? fmtFull(r.todo) : "—";
+    const nota = r.nota1 || r.nota2 || "";
+    return `<div class="card" style="background:rgba(13,148,136,.12);border:1.5px solid rgba(13,148,136,.4);border-left:4px solid ${tipo.color};border-radius:9px;padding:10px 12px;margin-bottom:6px">
+      <div style="display:flex;align-items:flex-start;gap:10px">
+        <div style="font-size:22px;line-height:1;flex-shrink:0;margin-top:2px">${tipo.emoji}</div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px">
+            <span style="font-size:11px;font-weight:900;color:${tipo.color};background:${tipo.color}22;border:1px solid ${tipo.color}55;border-radius:5px;padding:2px 8px;letter-spacing:.04em;text-transform:uppercase">${esc(r.stato)}</span>
+            <span style="font-size:13px;font-weight:800;color:#e2e8f0;cursor:pointer" onclick="openCli('${esc(r.contraente)}')">${esc(r.contraente||"—")}</span>
+          </div>
+          ${nota ? `<div style="font-size:12px;color:#cbd5e1;margin-top:4px;white-space:pre-wrap;line-height:1.5">${esc(nota)}</div>` : ""}
+        </div>
+        <div style="flex-shrink:0;text-align:right">
+          <div style="font-size:9px;color:#64748b;font-weight:700;text-transform:uppercase;margin-bottom:1px">TODO</div>
+          <div style="font-size:13px;font-weight:900;color:${tipo.color}">${todoD}</div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  // CARD NORMALE
   const impB=imp_flag?'<span style="font-size:13px;margin-right:3px">🔥</span>':"";
   const statoB=statoBadge(r.stato);
   const imp=r.importo?`<span style="font-size:10px;font-weight:700;color:#cbd5e1;padding:3px 7px;background:rgba(255,255,255,.08);border-radius:4px">€${parseFloat(r.importo).toLocaleString("it-IT")}</span>`:"";
