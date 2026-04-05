@@ -311,18 +311,23 @@ function cardHtml(r) {
   // CARD AGENDA
   if (agenda) {
     const tipo = AGENDA_TIPI[(r.stato||"").toUpperCase()];
-    const todoD = r.todo ? fmtFull(r.todo) : "—";
-    const nota = r.nota1 || r.nota2 || "";
-    return `<div class="card" style="background:rgba(13,148,136,.12);border:1.5px solid rgba(13,148,136,.4);border-left:4px solid ${tipo.color};border-radius:9px;padding:10px 12px;margin-bottom:6px;box-sizing:border-box;overflow:hidden">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
-        <div style="font-size:13px;font-weight:900;color:#f87171;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;flex:1;min-width:0;margin-right:8px" onclick="openCli('${esc(r.contraente)}')">${esc(r.contraente||"—")}</div>
-        <div style="font-size:12px;font-weight:900;color:${tipo.color};flex-shrink:0">${todoD}</div>
+    const scadD=r.scad?fmtFull(r.scad):"—";
+    const todoD=r.todo?fmtFull(r.todo):"—";
+    const nota = (r.nota1||"") + (r.nota1&&r.nota2?"\n":"") + (r.nota2||"");
+    return `<div class="card" style="background:rgba(13,148,136,.12);border:1.5px solid rgba(13,148,136,.35);border-left:4px solid ${tipo.color}">
+      <div class="card-l">
+        <div class="card-name" onclick="openCli('${esc(r.contraente)}')">${esc(r.contraente||"—")}</div>
+        <div class="card-tags" style="margin-top:5px">
+          <span style="font-size:11px;font-weight:900;color:${tipo.color};background:${tipo.color}22;border:1px solid ${tipo.color}55;border-radius:6px;padding:3px 8px;display:inline-flex;align-items:center;gap:4px"><span>${tipo.emoji}</span><span>${esc(r.stato)}</span></span>
+        </div>
+        ${nota?`<div style="font-size:11px;color:#94a3b8;margin-top:5px;white-space:pre-wrap;line-height:1.5;word-break:break-word">${esc(nota)}</div>`:""}
       </div>
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:${nota?"6px":"0"}">
-        <span style="font-size:16px;line-height:1;flex-shrink:0">${tipo.emoji}</span>
-        <span style="font-size:11px;font-weight:900;color:${tipo.color};background:${tipo.color}22;border:1px solid ${tipo.color}55;border-radius:5px;padding:2px 8px;letter-spacing:.04em">${esc(r.stato)}</span>
+      <div class="card-r" style="text-align:right;flex-shrink:0">
+        <div style="font-size:9px;color:#64748b;font-weight:700;text-transform:uppercase;margin-bottom:1px">SCAD</div>
+        <div style="font-size:14px;font-weight:900;color:#38bdf8">${scadD}</div>
+        <div style="font-size:9px;color:#64748b;font-weight:700;text-transform:uppercase;margin-top:4px;margin-bottom:1px">TODO</div>
+        <div style="font-size:12px;font-weight:700;color:#94a3b8">${todoD}</div>
       </div>
-      ${nota ? `<div style="font-size:11px;color:#94a3b8;white-space:pre-wrap;line-height:1.5;border-top:1px solid rgba(13,148,136,.2);padding-top:5px;margin-top:2px;word-break:break-word;overflow-wrap:break-word">${esc(nota)}</div>` : ""}
     </div>`;
   }
 
