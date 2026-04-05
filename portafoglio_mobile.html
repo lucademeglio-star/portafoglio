@@ -314,20 +314,15 @@ function cardHtml(r) {
     const todoD = r.todo ? fmtFull(r.todo) : "—";
     const nota = r.nota1 || r.nota2 || "";
     return `<div class="card" style="background:rgba(13,148,136,.12);border:1.5px solid rgba(13,148,136,.4);border-left:4px solid ${tipo.color};border-radius:9px;padding:10px 12px;margin-bottom:6px">
-      <div style="display:flex;align-items:flex-start;gap:10px">
-        <div style="font-size:22px;line-height:1;flex-shrink:0;margin-top:2px">${tipo.emoji}</div>
-        <div style="flex:1;min-width:0">
-          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px">
-            <span style="font-size:11px;font-weight:900;color:${tipo.color};background:${tipo.color}22;border:1px solid ${tipo.color}55;border-radius:5px;padding:2px 8px;letter-spacing:.04em;text-transform:uppercase">${esc(r.stato)}</span>
-            <span style="font-size:13px;font-weight:800;color:#e2e8f0;cursor:pointer" onclick="openCli('${esc(r.contraente)}')">${esc(r.contraente||"—")}</span>
-          </div>
-          ${nota ? `<div style="font-size:12px;color:#cbd5e1;margin-top:4px;white-space:pre-wrap;line-height:1.5">${esc(nota)}</div>` : ""}
-        </div>
-        <div style="flex-shrink:0;text-align:right">
-          <div style="font-size:9px;color:#64748b;font-weight:700;text-transform:uppercase;margin-bottom:1px">TODO</div>
-          <div style="font-size:13px;font-weight:900;color:${tipo.color}">${todoD}</div>
-        </div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+        <div style="font-size:14px;font-weight:900;color:#f87171;cursor:pointer" onclick="openCli('${esc(r.contraente)}')">${esc(r.contraente||"—")}</div>
+        <div style="font-size:9px;color:#64748b;font-weight:700;text-transform:uppercase;text-align:right">TODO<br><span style="font-size:13px;font-weight:900;color:${tipo.color}">${todoD}</span></div>
       </div>
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:${nota?"6px":"0"}">
+        <span style="font-size:18px;line-height:1">${tipo.emoji}</span>
+        <span style="font-size:11px;font-weight:900;color:${tipo.color};background:${tipo.color}22;border:1px solid ${tipo.color}55;border-radius:5px;padding:2px 8px;letter-spacing:.04em;text-transform:uppercase">${esc(r.stato)}</span>
+      </div>
+      ${nota ? `<div style="font-size:12px;color:#cbd5e1;white-space:pre-wrap;line-height:1.5;border-top:1px solid rgba(13,148,136,.2);padding-top:6px">${esc(nota)}</div>` : ""}
     </div>`;
   }
 
@@ -745,11 +740,10 @@ function saveNuova() {
   });
   
   closeNuova();
-  showToast("💾 Inserimento…");
+  showToast("💾 Inserimento in corso…");
   const url = SCRIPT_URL + "?action=insert&valori=" + encodeURIComponent(JSON.stringify(valori));
   callScript(url);
-  showToast("✅ Riga inserita!");
-  setTimeout(()=>doRefresh(), 2000);
+  setTimeout(()=>{ showToast("✅ Riga inserita!"); doRefresh(); }, 5000);
 }
 
 let toastT;
