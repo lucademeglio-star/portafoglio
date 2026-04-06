@@ -373,7 +373,7 @@ function cardHtml(r) {
       <div style="font-size:9px;color:#f1f5f9;font-weight:700;text-transform:uppercase;margin-top:4px;margin-bottom:1px">TODO</div>
       <div style="font-size:14px;font-weight:900;color:#fde047">${todoD}</div>
       <div style="margin-top:6px;display:flex;gap:8px;justify-content:flex-end">
-        ${(r.stato||'').toUpperCase()==='ATTIVA'?`<button id="pbtn-${r.id}" onclick="prorogaAnno(${r.id})" style="background:rgba(234,179,8,.12);border:1px solid rgba(234,179,8,.25);border-radius:6px;padding:4px 6px;color:#fde047;font-size:13px;cursor:pointer;line-height:1">📅</button>`:'<span style="display:inline-block;width:29px"></span>'}
+
         <button id="dbtn-${r.id}" onclick="cardDel(${r.id})" style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);border-radius:6px;padding:4px 6px;color:#fca5a5;font-size:13px;cursor:pointer;line-height:1">🗑</button>
         <button id="ebtn-${r.id}" onclick="cardEdit(${r.id})" style="background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.25);border-radius:6px;padding:4px 6px;color:#93c5fd;font-size:13px;cursor:pointer;line-height:1">✏️</button>
       </div>
@@ -574,7 +574,6 @@ function openCli(nome) {
           ${scadenzaAlert(r)}
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
-          ${(r.stato||"").toUpperCase()==="ATTIVA"?`<button class="btn-p" style="padding:6px 10px;font-size:11px;background:rgba(234,179,8,.15);border-color:rgba(234,179,8,.35);color:#fde047" onclick="prorogaAnno(${r.id})">📅+1</button>`:""}
           <button class="btn-p" style="padding:6px 12px;font-size:11px" onclick="openEdit(${r.id})">✏️ Modifica</button>
           <button class="del-btn" style="padding:6px 10px;font-size:11px" onclick="askDelete(${r.id},'${esc(r.contraente)}')">🗑</button>
         </div>
@@ -657,7 +656,11 @@ function openEdit(id) {
     else if(type==="date") {
       const d = normalizeDate(val);
       const iso = d ? `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}` : "";
-      html+=`<input type="date" style="${stl}" id="ef-${key}" value="${iso}">`;
+      if(key==="scad") {
+        html+=`<div style="display:flex;gap:6px;align-items:center"><input type="date" style="${stl};flex:1" id="ef-${key}" value="${iso}"><button type="button" onclick="applicaProrogaEdit()" style="background:rgba(234,179,8,.15);border:1px solid rgba(234,179,8,.35);border-radius:7px;padding:8px 10px;color:#fde047;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0">📅+1</button></div>`;
+      } else {
+        html+=`<input type="date" style="${stl}" id="ef-${key}" value="${iso}">`;
+      }
     }
     else if(type==="number") html+=`<input type="number" step="0.01" style="${stl}" id="ef-${key}" value="${val}">`;
     else html+=`<input type="text" style="${stl}" id="ef-${key}" value="${esc(val)}" placeholder="${ph||""}">`;
@@ -668,6 +671,17 @@ function openEdit(id) {
   document.getElementById("edit-ov").style.display = "flex";
 }
 
+function applicaProrogaEdit(){
+  const scadEl=document.getElementById("ef-scad");
+  if(!scadEl||!scadEl.value)return;
+  const d=new Date(scadEl.value);
+  if(isNaN(d))return;
+  d.setFullYear(d.getFullYear()+1);
+  const iso=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  scadEl.value=iso;
+  const todoEl=document.getElementById("ef-todo");
+  if(todoEl)todoEl.value=iso;
+}
 function closeEdit() { document.getElementById("edit-ov").style.display="none"; curEditId=null; }
 
 async function saveEdit() {
@@ -707,23 +721,7 @@ function _tap(id,prefix,icon,action){
     _pending[key]=setTimeout(()=>{delete _pending[key];if(btn)btn.textContent=icon;},2000);
   }
 }
-function prorogaAnno(id){
-  _tap(id,"pbtn-","📅",()=>{
-    const r=records.find(x=>x.id===id);if(!r)return;
-    const dScad=normalizeDate(r.scad);
-    if(!dScad){showToast("⚠ Nessuna SCAD valida");return;}
-    const newScad=new Date(dScad);newScad.setFullYear(newScad.getFullYear()+1);
-    const fmtD=d=>String(d.getDate()).padStart(2,"0")+"/"+String(d.getMonth()+1).padStart(2,"0")+"/"+d.getFullYear();
-    const newScadStr=fmtD(newScad);
-    const campi={[COL_MAP.scad]:newScadStr,[COL_MAP.todo]:newScadStr};
-    const campiOld={[COL_MAP.scad]:r.scad,[COL_MAP.todo]:r.todo};
-    const url=SCRIPT_URL+"?action=edit&row="+id+"&campi="+encodeURIComponent(JSON.stringify(campi));
-    const undoUrl=SCRIPT_URL+"?action=edit&row="+id+"&campi="+encodeURIComponent(JSON.stringify(campiOld));
-    callScript(url);
-    showUndo("📅 Scadenze spostate +1 anno",undoUrl);
-    setTimeout(()=>refreshSilent(),3000);
-  });
-}
+
 function cardDel(id){
   _tap(id,"dbtn-","🗑",()=>{
     const r=records.find(x=>x.id===id);
