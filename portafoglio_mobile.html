@@ -280,6 +280,14 @@ async function doRefresh() {
     if(data.length>0){records=data;document.getElementById("src-lbl").textContent="● Sheets · "+data.length+" righe";updateKPIs();renderTab();showToast("✅ Aggiornato");}
   } catch(e){showToast("⚠ Non raggiungibile");document.getElementById("src-lbl").textContent="● "+records.length+" righe (cache)";}
 }
+async function refreshSilent() {
+  try {
+    const res=await fetch(CSV_URL,{cache:"no-cache"});
+    if(!res.ok) throw new Error();
+    const data=parseCSV(await res.text());
+    if(data.length>0){records=data;document.getElementById("src-lbl").textContent="● Sheets · "+data.length+" righe";updateKPIs();renderTab();}
+  } catch(e){}
+}
 
 function updateKPIs() {
   document.getElementById("k-arr").textContent=records.filter(r=>isArr(r)).length;
@@ -712,8 +720,8 @@ function prorogaAnno(id){
     const url=SCRIPT_URL+"?action=edit&row="+id+"&campi="+encodeURIComponent(JSON.stringify(campi));
     const undoUrl=SCRIPT_URL+"?action=edit&row="+id+"&campi="+encodeURIComponent(JSON.stringify(campiOld));
     callScript(url);
-    showUndo("📅 Scadenze spostate +1 anno",url,undoUrl);
-    setTimeout(()=>doRefresh(),3000);
+    showUndo("📅 Scadenze spostate +1 anno",undoUrl);
+    setTimeout(()=>refreshSilent(),3000);
   });
 }
 function cardDel(id){
