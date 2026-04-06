@@ -329,6 +329,11 @@ function cardHtml(r) {
         <div style="font-size:14px;font-weight:900;color:#38bdf8">${scadD}</div>
         <div style="font-size:9px;color:#f1f5f9;font-weight:700;text-transform:uppercase;margin-top:4px;margin-bottom:1px">TODO</div>
         <div style="font-size:14px;font-weight:900;color:#fde047">${todoD}</div>
+        <div style="margin-top:6px;display:flex;gap:8px;justify-content:flex-end">
+          <span style="display:inline-block;width:29px"></span>
+          <button id="dbtn-${r.id}" onclick="cardDel(${r.id})" style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);border-radius:6px;padding:4px 6px;color:#fca5a5;font-size:13px;cursor:pointer;line-height:1">🗑</button>
+          <button id="ebtn-${r.id}" onclick="cardEdit(${r.id})" style="background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.25);border-radius:6px;padding:4px 6px;color:#93c5fd;font-size:13px;cursor:pointer;line-height:1">✏️</button>
+        </div>
       </div>
     </div>`;
   }
@@ -359,10 +364,10 @@ function cardHtml(r) {
       <div style="font-size:14px;font-weight:900;color:#38bdf8;letter-spacing:.02em">${scadD}</div>
       <div style="font-size:9px;color:#f1f5f9;font-weight:700;text-transform:uppercase;margin-top:4px;margin-bottom:1px">TODO</div>
       <div style="font-size:14px;font-weight:900;color:#fde047">${todoD}</div>
-      <div style="margin-top:6px;display:flex;gap:4px;justify-content:flex-end">
-        ${(r.stato||'').toUpperCase()==='ATTIVA'?`<button onclick="prorogaAnno(${r.id},this)" style="background:rgba(234,179,8,.12);border:1px solid rgba(234,179,8,.25);border-radius:6px;padding:4px 6px;color:#fde047;font-size:13px;cursor:pointer;line-height:1">📅</button>`:'<span style="display:inline-block;width:29px"></span>'}
-        <button onclick="cardDel(${r.id},this)" style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);border-radius:6px;padding:4px 6px;color:#fca5a5;font-size:13px;cursor:pointer;line-height:1">🗑</button>
-        <button onclick="cardEdit(${r.id},this)" style="background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.25);border-radius:6px;padding:4px 6px;color:#93c5fd;font-size:13px;cursor:pointer;line-height:1">✏️</button>
+      <div style="margin-top:6px;display:flex;gap:8px;justify-content:flex-end">
+        ${(r.stato||'').toUpperCase()==='ATTIVA'?`<button id="pbtn-${r.id}" onclick="prorogaAnno(${r.id})" style="background:rgba(234,179,8,.12);border:1px solid rgba(234,179,8,.25);border-radius:6px;padding:4px 6px;color:#fde047;font-size:13px;cursor:pointer;line-height:1">📅</button>`:'<span style="display:inline-block;width:29px"></span>'}
+        <button id="dbtn-${r.id}" onclick="cardDel(${r.id})" style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);border-radius:6px;padding:4px 6px;color:#fca5a5;font-size:13px;cursor:pointer;line-height:1">🗑</button>
+        <button id="ebtn-${r.id}" onclick="cardEdit(${r.id})" style="background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.25);border-radius:6px;padding:4px 6px;color:#93c5fd;font-size:13px;cursor:pointer;line-height:1">✏️</button>
       </div>
     </div>
   </div>`;
@@ -680,40 +685,22 @@ async function saveEdit() {
   setTimeout(()=>doRefresh(),2000);
 }
 
-let _prorogaPending={};
-let _delPending={};
-let _editPending={};
-
-function cardDel(id,btn){
-  if(_delPending[id]){
-    clearTimeout(_delPending[id].t);
-    delete _delPending[id];
-    btn.textContent="🗑";
-    const r=records.find(x=>x.id===id);
-    askDelete(id,r?r.contraente:"");
+const _pending={};
+function _tap(id,prefix,icon,action){
+  const btn=document.getElementById(prefix+id);
+  const key=prefix+id;
+  if(_pending[key]){
+    clearTimeout(_pending[key]);
+    delete _pending[key];
+    if(btn)btn.textContent=icon;
+    action();
   } else {
-    btn.textContent="❓";
-    _delPending[id]={t:setTimeout(()=>{delete _delPending[id];btn.textContent="🗑";},2000)};
+    if(btn)btn.textContent="❓";
+    _pending[key]=setTimeout(()=>{delete _pending[key];if(btn)btn.textContent=icon;},2000);
   }
 }
-
-function cardEdit(id,btn){
-  if(_editPending[id]){
-    clearTimeout(_editPending[id].t);
-    delete _editPending[id];
-    btn.textContent="✏️";
-    openEdit(id);
-  } else {
-    btn.textContent="❓";
-    _editPending[id]={t:setTimeout(()=>{delete _editPending[id];btn.textContent="✏️";},2000)};
-  }
-}
-
-function prorogaAnno(id,btn){
-  if(_prorogaPending[id]){
-    clearTimeout(_prorogaPending[id].t);
-    delete _prorogaPending[id];
-    btn.textContent="📅";
+function prorogaAnno(id){
+  _tap(id,"pbtn-","📅",()=>{
     const r=records.find(x=>x.id===id);if(!r)return;
     const dScad=normDate(r.scad);
     if(!dScad){showToast("⚠ Nessuna SCAD valida");return;}
@@ -727,10 +714,16 @@ function prorogaAnno(id,btn){
     callScript(url);
     showUndo("📅 Scadenze spostate +1 anno",url,undoUrl);
     setTimeout(()=>loadData(),2000);
-  } else {
-    btn.textContent="❓";
-    _prorogaPending[id]={t:setTimeout(()=>{delete _prorogaPending[id];btn.textContent="📅";},2000)};
-  }
+  });
+}
+function cardDel(id){
+  _tap(id,"dbtn-","🗑",()=>{
+    const r=records.find(x=>x.id===id);
+    askDelete(id,r?r.contraente:"");
+  });
+}
+function cardEdit(id){
+  _tap(id,"ebtn-","✏️",()=>{openEdit(id);});
 }
 
 // Chiama lo script tramite iframe invisibile — bypassa CORS e redirect
