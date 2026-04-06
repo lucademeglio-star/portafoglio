@@ -713,7 +713,7 @@ function prorogaAnno(id){
     const undoUrl=SCRIPT_URL+"?action=edit&row="+id+"&campi="+encodeURIComponent(JSON.stringify(campiOld));
     callScript(url);
     showUndo("📅 Scadenze spostate +1 anno",url,undoUrl);
-    setTimeout(()=>loadData(),3000);
+    setTimeout(()=>doRefresh(),3000);
   });
 }
 function cardDel(id){
