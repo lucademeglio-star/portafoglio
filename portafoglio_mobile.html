@@ -271,10 +271,11 @@ function finish() {
   updateKPIs(); renderTab();
 }
 
+function freshUrl(){return CSV_URL+"&t="+Date.now();}
 async function doRefresh() {
   document.getElementById("src-lbl").textContent="↻ …";
   try {
-    const res=await fetch(CSV_URL,{cache:"no-cache"});
+    const res=await fetch(freshUrl(),{cache:"no-store"});
     if(!res.ok) throw new Error();
     const data=parseCSV(await res.text());
     if(data.length>0){records=data;document.getElementById("src-lbl").textContent="● Sheets · "+data.length+" righe";updateKPIs();renderTab();showToast("✅ Aggiornato");}
@@ -282,7 +283,7 @@ async function doRefresh() {
 }
 async function refreshSilent() {
   try {
-    const res=await fetch(CSV_URL,{cache:"no-cache"});
+    const res=await fetch(freshUrl(),{cache:"no-store"});
     if(!res.ok) throw new Error();
     const data=parseCSV(await res.text());
     if(data.length>0){records=data;document.getElementById("src-lbl").textContent="● Sheets · "+data.length+" righe";updateKPIs();renderTab();}
@@ -604,7 +605,7 @@ async function confirmDelete(){
     const url = SCRIPT_URL + "?action=delete&row=" + pendingDeleteId;
     callScript(url);
     showToast("✅ Riga eliminata");
-    setTimeout(()=>doRefresh(),1500);
+    setTimeout(()=>refreshSilent(),3000);
   }catch(e){showToast("❌ Errore eliminazione");}
   pendingDeleteId=null;
   closeCli();
@@ -704,7 +705,7 @@ async function saveEdit() {
   const undoUrl = SCRIPT_URL + "?action=edit&row=" + rowId + "&campi=" + encodeURIComponent(JSON.stringify(campiOld));
   callScript(url);
   showUndo("✅ Salvato!", undoUrl);
-  setTimeout(()=>doRefresh(),2000);
+  setTimeout(()=>refreshSilent(),3000);
 }
 
 const _pending={};
@@ -826,7 +827,7 @@ function doUndo(){
   if(!lastUndo)return;
   callScript(lastUndo.url);
   showToast("↩ Annullato");lastUndo=null;
-  setTimeout(()=>doRefresh(),2000);
+  setTimeout(()=>refreshSilent(),3000);
 }
 
 function showToast(msg){
