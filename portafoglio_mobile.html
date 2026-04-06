@@ -359,7 +359,11 @@ function cardHtml(r) {
       <div style="font-size:14px;font-weight:900;color:#38bdf8;letter-spacing:.02em">${scadD}</div>
       <div style="font-size:9px;color:#f1f5f9;font-weight:700;text-transform:uppercase;margin-top:4px;margin-bottom:1px">TODO</div>
       <div style="font-size:14px;font-weight:900;color:#fde047">${todoD}</div>
-      ${(r.stato||'').toUpperCase()==='ATTIVA'?`<div style="margin-top:6px"><button ondblclick="prorogaAnno(${r.id})" onclick="this.textContent=this.textContent==='📅'?'❓':'📅'" style="background:rgba(234,179,8,.12);border:1px solid rgba(234,179,8,.25);border-radius:6px;padding:4px 7px;color:#fde047;font-size:14px;cursor:pointer;line-height:1" title="Doppio tap per spostare +1 anno">📅</button></div>`:""}
+      <div style="margin-top:6px;display:flex;gap:4px;justify-content:flex-end">
+        ${(r.stato||'').toUpperCase()==='ATTIVA'?`<button onclick="prorogaAnno(${r.id},this)" style="background:rgba(234,179,8,.12);border:1px solid rgba(234,179,8,.25);border-radius:6px;padding:4px 6px;color:#fde047;font-size:13px;cursor:pointer;line-height:1">📅</button>`:'<span style="display:inline-block;width:29px"></span>'}
+        <button onclick="cardDel(${r.id},this)" style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);border-radius:6px;padding:4px 6px;color:#fca5a5;font-size:13px;cursor:pointer;line-height:1">🗑</button>
+        <button onclick="cardEdit(${r.id},this)" style="background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.25);border-radius:6px;padding:4px 6px;color:#93c5fd;font-size:13px;cursor:pointer;line-height:1">✏️</button>
+      </div>
     </div>
   </div>`;
 }
@@ -676,20 +680,57 @@ async function saveEdit() {
   setTimeout(()=>doRefresh(),2000);
 }
 
-function prorogaAnno(id){
-  const r=records.find(x=>x.id===id);if(!r)return;
-  const dScad=normDate(r.scad);
-  if(!dScad){showToast("⚠ Nessuna SCAD valida");return;}
-  const newScad=new Date(dScad);newScad.setFullYear(newScad.getFullYear()+1);
-  const fmtD=d=>String(d.getDate()).padStart(2,"0")+"/"+String(d.getMonth()+1).padStart(2,"0")+"/"+d.getFullYear();
-  const newScadStr=fmtD(newScad);
-  const campi={[COL_MAP.scad]:newScadStr,[COL_MAP.todo]:newScadStr};
-  const campiOld={[COL_MAP.scad]:r.scad,[COL_MAP.todo]:r.todo};
-  const url=SCRIPT_URL+"?action=edit&row="+id+"&campi="+encodeURIComponent(JSON.stringify(campi));
-  const undoUrl=SCRIPT_URL+"?action=edit&row="+id+"&campi="+encodeURIComponent(JSON.stringify(campiOld));
-  callScript(url);
-  showUndo("📅 Scadenze spostate +1 anno",url,undoUrl);
-  setTimeout(()=>loadData(),2000);
+let _prorogaPending={};
+let _delPending={};
+let _editPending={};
+
+function cardDel(id,btn){
+  if(_delPending[id]){
+    clearTimeout(_delPending[id].t);
+    delete _delPending[id];
+    btn.textContent="🗑";
+    const r=records.find(x=>x.id===id);
+    askDelete(id,r?r.contraente:"");
+  } else {
+    btn.textContent="❓";
+    _delPending[id]={t:setTimeout(()=>{delete _delPending[id];btn.textContent="🗑";},2000)};
+  }
+}
+
+function cardEdit(id,btn){
+  if(_editPending[id]){
+    clearTimeout(_editPending[id].t);
+    delete _editPending[id];
+    btn.textContent="✏️";
+    openEdit(id);
+  } else {
+    btn.textContent="❓";
+    _editPending[id]={t:setTimeout(()=>{delete _editPending[id];btn.textContent="✏️";},2000)};
+  }
+}
+
+function prorogaAnno(id,btn){
+  if(_prorogaPending[id]){
+    clearTimeout(_prorogaPending[id].t);
+    delete _prorogaPending[id];
+    btn.textContent="📅";
+    const r=records.find(x=>x.id===id);if(!r)return;
+    const dScad=normDate(r.scad);
+    if(!dScad){showToast("⚠ Nessuna SCAD valida");return;}
+    const newScad=new Date(dScad);newScad.setFullYear(newScad.getFullYear()+1);
+    const fmtD=d=>String(d.getDate()).padStart(2,"0")+"/"+String(d.getMonth()+1).padStart(2,"0")+"/"+d.getFullYear();
+    const newScadStr=fmtD(newScad);
+    const campi={[COL_MAP.scad]:newScadStr,[COL_MAP.todo]:newScadStr};
+    const campiOld={[COL_MAP.scad]:r.scad,[COL_MAP.todo]:r.todo};
+    const url=SCRIPT_URL+"?action=edit&row="+id+"&campi="+encodeURIComponent(JSON.stringify(campi));
+    const undoUrl=SCRIPT_URL+"?action=edit&row="+id+"&campi="+encodeURIComponent(JSON.stringify(campiOld));
+    callScript(url);
+    showUndo("📅 Scadenze spostate +1 anno",url,undoUrl);
+    setTimeout(()=>loadData(),2000);
+  } else {
+    btn.textContent="❓";
+    _prorogaPending[id]={t:setTimeout(()=>{delete _prorogaPending[id];btn.textContent="📅";},2000)};
+  }
 }
 
 // Chiama lo script tramite iframe invisibile — bypassa CORS e redirect
