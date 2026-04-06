@@ -702,7 +702,7 @@ function _tap(id,prefix,icon,action){
 function prorogaAnno(id){
   _tap(id,"pbtn-","📅",()=>{
     const r=records.find(x=>x.id===id);if(!r)return;
-    const dScad=normDate(r.scad);
+    const dScad=normalizeDate(r.scad);
     if(!dScad){showToast("⚠ Nessuna SCAD valida");return;}
     const newScad=new Date(dScad);newScad.setFullYear(newScad.getFullYear()+1);
     const fmtD=d=>String(d.getDate()).padStart(2,"0")+"/"+String(d.getMonth()+1).padStart(2,"0")+"/"+d.getFullYear();
