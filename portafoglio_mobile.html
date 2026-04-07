@@ -601,14 +601,15 @@ function cancelDelete(){document.getElementById("confirm-box").style.display="no
 async function confirmDelete(){
   document.getElementById("confirm-box").style.display="none";
   if(!pendingDeleteId)return;
-  try{
-    const url = SCRIPT_URL + "?action=delete&row=" + pendingDeleteId;
-    callScript(url);
-    showToast("✅ Riga eliminata");
-    setTimeout(()=>refreshSilent(),3000);
-  }catch(e){showToast("❌ Errore eliminazione");}
+  const url = SCRIPT_URL + "?action=delete&row=" + pendingDeleteId;
+  callScript(url);
+  // Rimuovi subito da memoria e ridisegna
+  records = records.filter(r=>r.id!==pendingDeleteId);
   pendingDeleteId=null;
   closeCli();
+  updateKPIs(); renderTab();
+  showToast("✅ Riga eliminata");
+  setTimeout(()=>refreshSilent(),8000);
 }
 
 // MODIFICA
@@ -700,12 +701,10 @@ async function saveEdit() {
   });
   if(Object.keys(campi).length===0){showToast("Nessuna modifica");closeEdit();return;}
   const rowId = curEditId;
-  // Aggiorna subito in memoria
-  CAMPI_EDIT.forEach(({key,type})=>{
-    const el=document.getElementById("ef-"+key);if(!el)return;
-    let nv=el.value.trim();
-    if(type==="date"&&nv&&/^\d{4}-\d{2}-\d{2}$/.test(nv)){const[y,m,d]=nv.split("-");nv=d+"/"+m+"/"+y;}
-    if(COL_MAP[key])r[key]=nv;
+  // Aggiorna records in memoria PRIMA di chiudere il form (gli elementi esistono ancora)
+  Object.entries(campi).forEach(([col,val])=>{
+    const key = Object.keys(COL_MAP).find(k=>COL_MAP[k]===parseInt(col));
+    if(key) r[key] = val;
   });
   closeEdit(); closeCli();
   updateKPIs(); renderTab();
@@ -713,7 +712,7 @@ async function saveEdit() {
   const undoUrl = SCRIPT_URL + "?action=edit&row=" + rowId + "&campi=" + encodeURIComponent(JSON.stringify(campiOld));
   callScript(url);
   showUndo("✅ Salvato!", undoUrl);
-  setTimeout(()=>refreshSilent(),5000);
+  setTimeout(()=>refreshSilent(),8000);
 }
 
 const _pending={};
