@@ -685,25 +685,37 @@ function applicaProrogaEdit(){
 }
 function closeEdit() { document.getElementById("edit-ov").style.display="none"; curEditId=null; }
 
+function isoToDMY(iso){
+  if(!iso)return"";
+  const[y,m,d]=iso.split("-");
+  return d.padStart(2,"0")+"/"+m.padStart(2,"0")+"/"+y;
+}
+function dmyNorm(s){
+  const d=normalizeDate(s);
+  if(!d)return s||"";
+  return String(d.getDate()).padStart(2,"0")+"/"+String(d.getMonth()+1).padStart(2,"0")+"/"+d.getFullYear();
+}
 async function saveEdit() {
   const r = records.find(x=>x.id===curEditId); if(!r) return;
   const campi = {}, campiOld = {};
   CAMPI_EDIT.forEach(({key,type})=>{
     const el = document.getElementById("ef-"+key); if(!el) return;
     let nv = el.value.trim();
-    if(type==="date" && nv && /^\d{4}-\d{2}-\d{2}$/.test(nv)) {
-      const [y,m,d] = nv.split("-"); nv = d+"/"+m+"/"+y;
-    }
+    // Converti ISO → DD/MM/YYYY con zero-padding garantito
+    if(type==="date" && nv && /^\d{4}-\d{2}-\d{2}$/.test(nv)) nv = isoToDMY(nv);
+    // Normalizza anche il valore vecchio nello stesso formato
     const ov = String(r[key]||"").trim();
-    const ovNorm = type==="date" ? (()=>{const dd=normalizeDate(ov);return dd?String(dd.getDate()).padStart(2,"0")+"/"+String(dd.getMonth()+1).padStart(2,"0")+"/"+dd.getFullYear():ov;})() : ov;
-    if(nv!==ovNorm && COL_MAP[key]) { campi[COL_MAP[key]]=nv; campiOld[COL_MAP[key]]=ov; }
+    const ovNorm = type==="date" ? dmyNorm(ov) : ov;
+    if(nv !== ovNorm && COL_MAP[key]) { campi[COL_MAP[key]]=nv; campiOld[COL_MAP[key]]=ov; }
   });
   if(Object.keys(campi).length===0){showToast("Nessuna modifica");closeEdit();return;}
   const rowId = curEditId;
-  // Aggiorna records in memoria PRIMA di chiudere il form (gli elementi esistono ancora)
+  // Aggiorna records in memoria con i valori già calcolati in campi
   Object.entries(campi).forEach(([col,val])=>{
     const key = Object.keys(COL_MAP).find(k=>COL_MAP[k]===parseInt(col));
-    if(key) r[key] = val;
+    if(!key) return;
+    if(key==="importo") r[key] = val ? parseFloat(val)||null : null;
+    else r[key] = val;
   });
   closeEdit(); closeCli();
   updateKPIs(); renderTab();
@@ -811,10 +823,19 @@ function saveNuova() {
   });
   
   closeNuova();
-  showToast("💾 Inserimento in corso…");
   const url = SCRIPT_URL + "?action=insert&valori=" + encodeURIComponent(JSON.stringify(valori));
   callScript(url);
-  setTimeout(()=>{ showToast("✅ Riga inserita!"); doRefresh(); }, 5000);
+  showToast("💾 Inserimento in corso…");
+  // Aggiunge record provvisorio in memoria per feedback immediato
+  const newId = Date.now();
+  const keys2 = ["contraente","ramo","polizza","scad","todo","importo","rinn","fr","settore","stato","targa","settori","nota1","nota2","capo","rami","indirizzo","citta","cell","email","tipolCli","sub","cf"];
+  const newR = {id: newId};
+  keys2.forEach((k,i)=>{ newR[k] = valori[i]||""; });
+  newR.importo = newR.importo ? parseFloat(newR.importo)||null : null;
+  records.unshift(newR);
+  updateKPIs(); renderTab();
+  // Dopo 6 secondi sincronizza da Sheets (che ora avrà l'id reale)
+  setTimeout(()=>{ showToast("✅ Riga inserita!"); doRefresh(); }, 6000);
 }
 
 let toastT;
@@ -832,7 +853,7 @@ function doUndo(){
   if(!lastUndo)return;
   callScript(lastUndo.url);
   showToast("↩ Annullato");lastUndo=null;
-  setTimeout(()=>refreshSilent(),3000);
+  setTimeout(()=>doRefresh(),4000);
 }
 
 function showToast(msg){
