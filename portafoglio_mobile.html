@@ -707,10 +707,7 @@ function dmyNorm(s){
 }
 function getFieldValue(el,type){
   if(!el)return"";
-  const raw=el.value.trim();
-  if(type!=="date")return raw;
-  // Il campo data è ora testo DD/MM/YYYY — normalizza e restituisce in DD/MM/YYYY
-  return dmyNorm(raw)||raw;
+  return el.value.trim();
 }
 async function saveEdit() {
   const r = records.find(x=>x.id===curEditId); if(!r) return;
@@ -719,8 +716,7 @@ async function saveEdit() {
     const el = document.getElementById("ef-"+key); if(!el) return;
     const nv = getFieldValue(el,type);
     const ov = String(r[key]||"").trim();
-    const ovNorm = type==="date" ? dmyNorm(ov) : (type==="number" ? ov : ov);
-    if(nv !== ovNorm && COL_MAP[key]) { campi[COL_MAP[key]]=nv; campiOld[COL_MAP[key]]=ov; }
+    if(nv !== ov && COL_MAP[key]) { campi[COL_MAP[key]]=nv; campiOld[COL_MAP[key]]=ov; }
   });
   if(Object.keys(campi).length===0){showToast("Nessuna modifica");closeEdit();return;}
   const rowId = curEditId;
