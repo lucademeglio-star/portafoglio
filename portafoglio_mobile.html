@@ -609,7 +609,6 @@ async function confirmDelete(){
   closeCli();
   updateKPIs(); renderTab();
   showToast("✅ Riga eliminata");
-  setTimeout(()=>refreshSilent(),8000);
 }
 
 // MODIFICA
@@ -712,7 +711,6 @@ async function saveEdit() {
   const undoUrl = SCRIPT_URL + "?action=edit&row=" + rowId + "&campi=" + encodeURIComponent(JSON.stringify(campiOld));
   callScript(url);
   showUndo("✅ Salvato!", undoUrl);
-  setTimeout(()=>refreshSilent(),8000);
 }
 
 const _pending={};
