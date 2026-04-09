@@ -100,7 +100,7 @@ input::placeholder{color:#334155}select option{background:#111e3a;color:#e2e8f0}
           <div class="kpi k-grn"><div class="kpi-v v-grn" id="k-att">0</div><div class="kpi-l">Attive</div></div>
           <div class="kpi k-blu"><div class="kpi-v v-blu" id="k-tot">0</div><div class="kpi-l">Tot</div></div>
         </div>
-        <button class="refresh-btn" onclick="doRefresh()" style="font-size:18px;padding:6px 12px;line-height:1">↻</button>
+        <button class="refresh-btn" onclick="doRefresh(true)" style="font-size:18px;padding:6px 12px;line-height:1">↻</button>
       </div>
     </div>
     <div style="display:flex;align-items:center;justify-content:space-between"><div class="tabs" style="flex:1">
@@ -231,6 +231,7 @@ function parseCSV(text) {
 }
 
 let records=[], curTab="lista", searchQ="", filtriSett=[], filtriStato=[], filtriRamo=[], sortField="todo", sortDir="asc", pendingDeleteId=null;
+let _localDirty=false; // true quando ci sono modifiche locali non ancora confermate da Sheets
 
 // Rami disponibili estratti dai dati
 function getRami() {
@@ -272,22 +273,24 @@ function finish() {
 }
 
 function freshUrl(){return CSV_URL+"&t="+Date.now();}
-async function doRefresh() {
+async function doRefresh(force=false) {
   document.getElementById("src-lbl").textContent="↻ …";
   try {
     const res=await fetch(freshUrl(),{cache:"no-store"});
     if(!res.ok) throw new Error();
     const data=parseCSV(await res.text());
-    if(data.length>0){records=data;document.getElementById("src-lbl").textContent="● Sheets · "+data.length+" righe";updateKPIs();renderTab();showToast("✅ Aggiornato");}
+    if(data.length>0){
+      if(force||!_localDirty){
+        records=data;_localDirty=false;
+        document.getElementById("src-lbl").textContent="● Sheets · "+data.length+" righe";
+        updateKPIs();renderTab();showToast("✅ Aggiornato");
+      } else {
+        // Ci sono modifiche locali — non sovrascrivere, aggiorna solo il contatore
+        document.getElementById("src-lbl").textContent="● "+records.length+" righe (locale)";
+        showToast("✅ Sheets aggiornato");
+      }
+    }
   } catch(e){showToast("⚠ Non raggiungibile");document.getElementById("src-lbl").textContent="● "+records.length+" righe (cache)";}
-}
-async function refreshSilent() {
-  try {
-    const res=await fetch(freshUrl(),{cache:"no-store"});
-    if(!res.ok) throw new Error();
-    const data=parseCSV(await res.text());
-    if(data.length>0){records=data;document.getElementById("src-lbl").textContent="● Sheets · "+data.length+" righe";updateKPIs();renderTab();}
-  } catch(e){}
 }
 
 function updateKPIs() {
@@ -605,6 +608,7 @@ async function confirmDelete(){
   callScript(url);
   // Rimuovi subito da memoria e ridisegna
   records = records.filter(r=>r.id!==pendingDeleteId);
+  _localDirty=true;
   pendingDeleteId=null;
   closeCli();
   updateKPIs(); renderTab();
@@ -721,6 +725,7 @@ async function saveEdit() {
     if(key==="importo") r[key] = val ? parseFloat(val)||null : null;
     else r[key] = val;
   });
+  _localDirty=true;
   closeEdit(); closeCli();
   updateKPIs(); renderTab();
   const url = SCRIPT_URL + "?action=edit&row=" + rowId + "&campi=" + encodeURIComponent(JSON.stringify(campi));
@@ -856,8 +861,9 @@ function showUndo(msg,invertUrl){
 function doUndo(){
   if(!lastUndo)return;
   callScript(lastUndo.url);
+  _localDirty=false;
   showToast("↩ Annullato");lastUndo=null;
-  setTimeout(()=>doRefresh(),4000);
+  setTimeout(()=>doRefresh(true),4000);
 }
 
 function showToast(msg){
