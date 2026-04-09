@@ -659,11 +659,11 @@ function openEdit(id) {
     if(type==="select") html+=`<select style="${stl}" id="ef-${key}"><option value=""></option>${opts.map(o=>`<option value="${esc(o)}"${o===val?" selected":""}>${esc(o)||"—"}</option>`).join("")}</select>`;
     else if(type==="textarea") html+=`<textarea style="${stl};resize:vertical;min-height:56px" id="ef-${key}">${esc(val)}</textarea>`;
     else if(type==="date") {
-      const dv = dmyNorm(val);
+      const iso = toISO(val);
       if(key==="scad") {
-        html+=`<div style="display:flex;gap:6px;align-items:center"><input type="text" inputmode="numeric" placeholder="GG/MM/AAAA" oninput="autoDate(this)" style="${stl};flex:1" id="ef-${key}" value="${dv}"><button type="button" onclick="applicaProrogaEdit()" style="background:rgba(234,179,8,.15);border:1px solid rgba(234,179,8,.35);border-radius:7px;padding:8px 10px;color:#fde047;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0">📅+1</button></div>`;
+        html+=`<div style="display:flex;gap:6px;align-items:center"><input type="date" style="${stl};flex:1" id="ef-${key}" value="${iso}"><button type="button" onclick="applicaProrogaEdit()" style="background:rgba(234,179,8,.15);border:1px solid rgba(234,179,8,.35);border-radius:7px;padding:8px 10px;color:#fde047;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0">📅+1</button></div>`;
       } else {
-        html+=`<input type="text" inputmode="numeric" placeholder="GG/MM/AAAA" oninput="autoDate(this)" style="${stl}" id="ef-${key}" value="${dv}">`;
+        html+=`<input type="date" style="${stl}" id="ef-${key}" value="${iso}">`;
       }
     }
     else if(type==="number") html+=`<input type="number" step="0.01" style="${stl}" id="ef-${key}" value="${val}">`;
@@ -675,48 +675,45 @@ function openEdit(id) {
   document.getElementById("edit-ov").style.display = "flex";
 }
 
-function autoDate(el){
-  let v=el.value.replace(/[^\d]/g,"");
-  if(v.length>2)v=v.slice(0,2)+"/"+v.slice(2);
-  if(v.length>5)v=v.slice(0,5)+"/"+v.slice(5);
-  if(v.length>10)v=v.slice(0,10);
-  el.value=v;
-}
+
 function applicaProrogaEdit(){
   const scadEl=document.getElementById("ef-scad");
   if(!scadEl||!scadEl.value)return;
   const d=normalizeDate(scadEl.value);
   if(!d)return;
   d.setFullYear(d.getFullYear()+1);
-  const nuova=String(d.getDate()).padStart(2,"0")+"/"+String(d.getMonth()+1).padStart(2,"0")+"/"+d.getFullYear();
-  scadEl.value=nuova;
+  const iso=toISO(d.toISOString().slice(0,10));
+  scadEl.value=iso;
   const todoEl=document.getElementById("ef-todo");
-  if(todoEl)todoEl.value=nuova;
+  if(todoEl)todoEl.value=iso;
 }
 function closeEdit() { document.getElementById("edit-ov").style.display="none"; curEditId=null; }
 
-function isoToDMY(iso){
-  if(!iso)return"";
-  const p=iso.split("-");if(p.length!==3)return"";
-  return p[2]+"/"+p[1]+"/"+p[0];
-}
+
 function dmyNorm(s){
   const d=normalizeDate(s);
   if(!d)return"";
   return String(d.getDate()).padStart(2,"0")+"/"+String(d.getMonth()+1).padStart(2,"0")+"/"+d.getFullYear();
 }
-function getFieldValue(el,type){
-  if(!el)return"";
-  return el.value.trim();
+function toISO(s){
+  const d=normalizeDate(s);
+  if(!d)return"";
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
 }
+
 async function saveEdit() {
   const r = records.find(x=>x.id===curEditId); if(!r) return;
   const campi = {}, campiOld = {};
   CAMPI_EDIT.forEach(({key,type})=>{
     const el = document.getElementById("ef-"+key); if(!el) return;
-    const nv = getFieldValue(el,type);
+    let nv = el.value.trim();
+    // Per le date: converti ISO→DMY per salvare e confrontare
+    if(type==="date"){
+      nv = nv ? dmyNorm(nv) : "";
+    }
     const ov = String(r[key]||"").trim();
-    if(nv !== ov && COL_MAP[key]) { campi[COL_MAP[key]]=nv; campiOld[COL_MAP[key]]=ov; }
+    const ovNorm = type==="date" ? dmyNorm(ov) : ov;
+    if(nv !== ovNorm && COL_MAP[key]) { campi[COL_MAP[key]]=nv; campiOld[COL_MAP[key]]=ov; }
   });
   if(Object.keys(campi).length===0){showToast("Nessuna modifica");closeEdit();return;}
   const rowId = curEditId;
