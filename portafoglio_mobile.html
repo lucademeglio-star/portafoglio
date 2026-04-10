@@ -596,9 +596,7 @@ function openEdit(id) {
     if(type==="select") html+=`<select style="${stl}" id="ef-${key}"><option value=""></option>${opts.map(o=>`<option value="${esc(o)}"${o===val?" selected":""}>${esc(o)||"—"}</option>`).join("")}</select>`;
     else if(type==="textarea") html+=`<textarea style="${stl};resize:vertical;min-height:56px" id="ef-${key}">${esc(val)}</textarea>`;
     else if(type==="date") {
-      const d = normalizeDate(val);
-      const iso = d ? `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}` : "";
-      html+=`<input type="date" style="${stl}" id="ef-${key}" value="${iso}">`;
+      html+=`<input type="text" placeholder="GG/MM/AAAA" style="${stl}" id="ef-${key}" value="${esc(val)}">`;
     }
     else if(type==="number") html+=`<input type="number" step="0.01" style="${stl}" id="ef-${key}" value="${val}">`;
     else html+=`<input type="text" style="${stl}" id="ef-${key}" value="${esc(val)}" placeholder="${ph||""}">`;
@@ -616,22 +614,18 @@ async function saveEdit() {
   const campi = {}, campiOld = {};
   CAMPI_EDIT.forEach(({key,type})=>{
     const el = document.getElementById("ef-"+key); if(!el) return;
-    let nv = el.value.trim();
-    if(type==="date" && nv && /^\d{4}-\d{2}-\d{2}$/.test(nv)) {
-      const [y,m,d] = nv.split("-"); nv = d+"/"+m+"/"+y;
-    }
+    const nv = el.value.trim();
     const ov = String(r[key]||"").trim();
-    const ovNorm = type==="date" ? (()=>{const dd=normalizeDate(ov);return dd?String(dd.getDate()).padStart(2,"0")+"/"+String(dd.getMonth()+1).padStart(2,"0")+"/"+dd.getFullYear():ov;})() : ov;
-    if(nv!==ovNorm && COL_MAP[key]) { campi[COL_MAP[key]]=nv; campiOld[COL_MAP[key]]=ov; }
+    if(nv!==ov && COL_MAP[key]) { campi[COL_MAP[key]]=nv; campiOld[COL_MAP[key]]=ov; }
   });
   if(Object.keys(campi).length===0){showToast("Nessuna modifica");closeEdit();return;}
   const rowId = curEditId;
-  // Aggiorna records in memoria immediatamente
+  // Aggiorna memoria immediatamente
   Object.entries(campi).forEach(([col,val])=>{
-    const key = Object.keys(COL_MAP).find(k=>COL_MAP[k]===parseInt(col));
-    if(!key) return;
-    if(key==="importo") r[key] = val ? parseFloat(val)||null : null;
-    else r[key] = val;
+    const key=Object.keys(COL_MAP).find(k=>COL_MAP[k]===parseInt(col));
+    if(!key)return;
+    if(key==="importo")r[key]=val?parseFloat(val)||null:null;
+    else r[key]=val;
   });
   closeEdit(); closeCli();
   updateKPIs(); renderTab();
