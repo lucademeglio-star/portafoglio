@@ -223,6 +223,7 @@ function parseCSV(text) {
 }
 
 let records=[], curTab="lista", searchQ="", filtriSett=[], filtriStato=[], filtriRamo=[], sortField="todo", sortDir="asc", pendingDeleteId=null;
+ // timestamp: blocca refresh fino a questo momento
 
 // Rami disponibili estratti dai dati
 function getRami() {
@@ -266,11 +267,19 @@ function finish() {
 async function doRefresh() {
   document.getElementById("src-lbl").textContent="↻ …";
   try {
-    const res=await fetch(CSV_URL,{cache:"no-cache"});
+    const res=await fetch(CSV_URL+"&t="+Date.now(),{cache:"no-store"});
     if(!res.ok) throw new Error();
     const data=parseCSV(await res.text());
     if(data.length>0){records=data;document.getElementById("src-lbl").textContent="● Sheets · "+data.length+" righe";updateKPIs();renderTab();showToast("✅ Aggiornato");}
   } catch(e){showToast("⚠ Non raggiungibile");document.getElementById("src-lbl").textContent="● "+records.length+" righe (cache)";}
+}
+async function refreshSilent() {
+  try {
+    const res=await fetch(CSV_URL+"&t="+Date.now(),{cache:"no-store"});
+    if(!res.ok) throw new Error();
+    const data=parseCSV(await res.text());
+    if(data.length>0){records=data;document.getElementById("src-lbl").textContent="● Sheets · "+data.length+" righe";updateKPIs();renderTab();}
+  } catch(e){}
 }
 
 function updateKPIs() {
@@ -558,6 +567,7 @@ async function confirmDelete(){
   records=records.filter(r=>r.id!==id);
   closeCli();updateKPIs();renderTab();
   showToast("✅ Riga eliminata");
+  setTimeout(()=>refreshSilent(), 3000);
 }
 
 // MODIFICA
@@ -646,6 +656,7 @@ async function saveEdit() {
   const undoUrl = SCRIPT_URL + "?action=edit&row=" + rowId + "&campi=" + encodeURIComponent(JSON.stringify(campiOld));
   callScript(url);
   showUndo("✅ Salvato!", undoUrl);
+  setTimeout(()=>refreshSilent(), 3000);
 }
 
 // ── DOPPIO TAP ────────────────────────────────────────────────────────────────
@@ -678,6 +689,7 @@ function prorogaRecord(id){
   const undoUrl=SCRIPT_URL+"?action=edit&row="+id+"&campi="+encodeURIComponent(JSON.stringify(campiOld));
   callScript(url);
   showUndo("📅 Spostata +1 anno",undoUrl);
+  setTimeout(()=>refreshSilent(), 3000);
 }
 
 // Chiama lo script tramite iframe invisibile — bypassa CORS e redirect
