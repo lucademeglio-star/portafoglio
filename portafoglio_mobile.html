@@ -643,6 +643,7 @@ const CAMPI_EDIT = [
   {key:"cf",label:"CF/Conv",type:"text"},
 ];
 let curEditId = null;
+let _editDates = {};
 
 function openEdit(id) {
   const r = records.find(x=>x.id===id); if(!r) return;
@@ -672,6 +673,15 @@ function openEdit(id) {
   });
   html += "</div>";
   document.getElementById("edit-body").innerHTML = html;
+  // Safari fix: cattura le date via evento change invece di leggere el.value al salvataggio
+  _editDates = {};
+  ["scad","todo"].forEach(key => {
+    const el = document.getElementById("ef-"+key);
+    if(el) {
+      _editDates[key] = el.value; // valore ISO iniziale
+      el.addEventListener("change", function(){ _editDates[key] = this.value; });
+    }
+  });
   document.getElementById("edit-ov").style.display = "flex";
 }
 
@@ -679,13 +689,14 @@ function openEdit(id) {
 function applicaProrogaEdit(){
   const scadEl=document.getElementById("ef-scad");
   if(!scadEl||!scadEl.value)return;
-  const d=normalizeDate(scadEl.value);
+  const raw=_editDates["scad"]||scadEl.value;
+  const d=normalizeDate(raw);
   if(!d)return;
   d.setFullYear(d.getFullYear()+1);
   const iso=toISO(d.toISOString().slice(0,10));
-  scadEl.value=iso;
+  scadEl.value=iso;_editDates["scad"]=iso;
   const todoEl=document.getElementById("ef-todo");
-  if(todoEl)todoEl.value=iso;
+  if(todoEl){todoEl.value=iso;_editDates["todo"]=iso;}
 }
 function closeEdit() { document.getElementById("edit-ov").style.display="none"; curEditId=null; }
 
@@ -706,10 +717,14 @@ async function saveEdit() {
   const campi = {}, campiOld = {};
   CAMPI_EDIT.forEach(({key,type})=>{
     const el = document.getElementById("ef-"+key); if(!el) return;
-    let nv = el.value.trim();
-    // Per le date: converti ISO→DMY per salvare e confrontare
+    // Per le date: usa _editDates (aggiornato via evento change su Safari)
+    // Per gli altri campi: leggi el.value normalmente
+    let nv;
     if(type==="date"){
-      nv = nv ? dmyNorm(nv) : "";
+      const iso = (key in _editDates) ? _editDates[key] : el.value;
+      nv = iso ? dmyNorm(iso) : "";
+    } else {
+      nv = el.value.trim();
     }
     const ov = String(r[key]||"").trim();
     const ovNorm = type==="date" ? dmyNorm(ov) : ov;
