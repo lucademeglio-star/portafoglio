@@ -618,6 +618,9 @@ async function saveEdit() {
     const ov = String(r[key]||"").trim();
     if(nv!==ov && COL_MAP[key]) { campi[COL_MAP[key]]=nv; campiOld[COL_MAP[key]]=ov; }
   });
+  alert("campi="+JSON.stringify(campi)+"
+nv_scad="+( document.getElementById("ef-scad")?document.getElementById("ef-scad").value:"null" )+"
+ov_scad="+r.scad);
   if(Object.keys(campi).length===0){showToast("Nessuna modifica");closeEdit();return;}
   const rowId = curEditId;
   // Aggiorna memoria immediatamente
