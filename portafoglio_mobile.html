@@ -223,6 +223,8 @@ function parseCSV(text) {
 }
 
 let records=[], curTab="lista", searchQ="", filtriSett=[], filtriStato=[], filtriRamo=[], sortField="todo", sortDir="asc", pendingDeleteId=null;
+const _deletedIds=new Set();   // id eliminati localmente
+const _localChanges={};       // {id: {key:val,...}} modifiche locali da preservare
  // timestamp: blocca refresh fino a questo momento
 
 // Rami disponibili estratti dai dati
@@ -265,6 +267,8 @@ function finish() {
 }
 
 async function doRefresh() {
+  _deletedIds.clear();
+  Object.keys(_localChanges).forEach(k=>delete _localChanges[k]);
   document.getElementById("src-lbl").textContent="↻ …";
   try {
     const res=await fetch(CSV_URL+"&t="+Date.now(),{cache:"no-store"});
@@ -278,7 +282,20 @@ async function refreshSilent() {
     const res=await fetch(CSV_URL+"&t="+Date.now(),{cache:"no-store"});
     if(!res.ok) throw new Error();
     const data=parseCSV(await res.text());
-    if(data.length>0){records=data;document.getElementById("src-lbl").textContent="● Sheets · "+data.length+" righe";updateKPIs();renderTab();}
+    if(data.length>0){
+      // Filtra eliminati localmente
+      let filtered=_deletedIds.size?data.filter(r=>!_deletedIds.has(r.id)):data;
+      // Riapplica modifiche locali sopra i dati di Sheets
+      if(Object.keys(_localChanges).length){
+        filtered=filtered.map(r=>{
+          const ch=_localChanges[r.id];
+          return ch?Object.assign({},r,ch):r;
+        });
+      }
+      records=filtered;
+      document.getElementById("src-lbl").textContent="● Sheets · "+filtered.length+" righe";
+      updateKPIs();renderTab();
+    }
   } catch(e){}
 }
 
@@ -565,6 +582,7 @@ async function confirmDelete(){
   const id=pendingDeleteId;pendingDeleteId=null;
   callScript(SCRIPT_URL+"?action=delete&row="+id);
   records=records.filter(r=>r.id!==id);
+  _deletedIds.add(id);
   closeCli();updateKPIs();renderTab();
   showToast("✅ Riga eliminata");
   setTimeout(()=>refreshSilent(), 3000);
@@ -645,10 +663,13 @@ async function saveEdit() {
   if(Object.keys(campi).length===0){showToast("Nessuna modifica");closeEdit();return;}
   const rowId = curEditId;
   // Aggiorna memoria immediatamente
+  if(!_localChanges[rowId]) _localChanges[rowId]={};
   Object.entries(campi).forEach(([col,val])=>{
     const key=Object.keys(COL_MAP).find(k=>COL_MAP[k]===parseInt(col));
     if(!key)return;
-    r[key]=key==="importo"?(val?parseFloat(val)||null:null):val;
+    const v=key==="importo"?(val?parseFloat(val)||null:null):val;
+    r[key]=v;
+    _localChanges[rowId][key]=v;
   });
   closeEdit(); closeCli();
   updateKPIs(); renderTab();
@@ -684,6 +705,8 @@ function prorogaRecord(id){
   const campi={[COL_MAP.scad]:newDMY,[COL_MAP.todo]:newDMY};
   const campiOld={[COL_MAP.scad]:r.scad,[COL_MAP.todo]:r.todo};
   r.scad=newDMY;r.todo=newDMY;
+  if(!_localChanges[id])_localChanges[id]={};
+  _localChanges[id].scad=newDMY;_localChanges[id].todo=newDMY;
   updateKPIs();renderTab();
   const url=SCRIPT_URL+"?action=edit&row="+id+"&campi="+encodeURIComponent(JSON.stringify(campi));
   const undoUrl=SCRIPT_URL+"?action=edit&row="+id+"&campi="+encodeURIComponent(JSON.stringify(campiOld));
@@ -786,8 +809,11 @@ function showUndo(msg,invertUrl){
 function doUndo(){
   if(!lastUndo)return;
   callScript(lastUndo.url);
+  // Dopo undo lascia che Sheets sia la fonte di verità
+  _deletedIds.clear();
+  Object.keys(_localChanges).forEach(k=>delete _localChanges[k]);
   showToast("↩ Annullato");lastUndo=null;
-  setTimeout(()=>doRefresh(),2000);
+  setTimeout(()=>doRefresh(),3000);
 }
 
 function showToast(msg){
