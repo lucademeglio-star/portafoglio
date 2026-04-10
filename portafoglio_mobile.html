@@ -311,6 +311,7 @@ function cardHtml(r) {
     : arr
       ? "background:rgba(249,115,22,.18);border:1px solid rgba(249,115,22,.5);border-left:4px solid #f97316;box-shadow:0 0 8px rgba(249,115,22,.15)"
       : "background:rgba(15,25,50,.9);border:1px solid rgba(59,130,246,.15);border-left:3px solid #334155";
+  const isAttiva = (r.stato||"").toUpperCase()==="ATTIVA";
   return `<div class="card" style="${borderStyle}">
     <div class="card-l">
       <div class="card-name" onclick="openCli('${esc(r.contraente)}')">${impB}${esc(r.contraente||"—")}</div>
@@ -323,6 +324,11 @@ function cardHtml(r) {
       <div style="font-size:14px;font-weight:900;color:#38bdf8;letter-spacing:.02em">${scadD}</div>
       <div style="font-size:9px;color:#64748b;font-weight:700;text-transform:uppercase;margin-top:4px;margin-bottom:1px">TODO</div>
       <div style="font-size:12px;font-weight:700;color:#94a3b8">${todoD}</div>
+      <div style="margin-top:6px;display:flex;gap:6px;justify-content:flex-end;align-items:center">
+        ${isAttiva?`<button id="cbtn-${r.id}" onclick="tapCal(${r.id})" style="background:rgba(234,179,8,.12);border:1px solid rgba(234,179,8,.3);border-radius:6px;padding:4px 6px;font-size:13px;cursor:pointer;line-height:1">📅</button>`:''}
+        <button id="dbtn-${r.id}" onclick="tapDel(${r.id})" style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);border-radius:6px;padding:4px 6px;color:#fca5a5;font-size:13px;cursor:pointer;line-height:1">🗑</button>
+        <button id="ebtn-${r.id}" onclick="tapEdit(${r.id})" style="background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.25);border-radius:6px;padding:4px 6px;color:#93c5fd;font-size:13px;cursor:pointer;line-height:1">✏️</button>
+      </div>
     </div>
   </div>`;
 }
@@ -519,8 +525,9 @@ function openCli(nome) {
           ${statoBadge(r.stato,true)}
           ${scadenzaAlert(r)}
         </div>
-        <div style="display:flex;gap:6px">
-          <button class="btn-p" style="padding:6px 12px;font-size:11px" onclick="openEdit(${r.id})">✏️ Modifica</button>
+        <div style="display:flex;gap:6px;align-items:center">
+          ${(r.stato||"").toUpperCase()==="ATTIVA"?`<button id="ccbtn-${r.id}" onclick="tapCalCli(${r.id})" style="background:rgba(234,179,8,.12);border:1px solid rgba(234,179,8,.3);border-radius:6px;padding:5px 7px;font-size:12px;cursor:pointer;line-height:1">📅</button>`:""}
+          <button class="btn-p" style="padding:6px 12px;font-size:11px" onclick="openEdit(${r.id})">✏️</button>
           <button class="del-btn" style="padding:6px 10px;font-size:11px" onclick="askDelete(${r.id},'${esc(r.contraente)}')">🗑</button>
         </div>
       </div>
@@ -546,14 +553,11 @@ function cancelDelete(){document.getElementById("confirm-box").style.display="no
 async function confirmDelete(){
   document.getElementById("confirm-box").style.display="none";
   if(!pendingDeleteId)return;
-  try{
-    const url = SCRIPT_URL + "?action=delete&row=" + pendingDeleteId;
-    callScript(url);
-    showToast("✅ Riga eliminata");
-    setTimeout(()=>doRefresh(),1500);
-  }catch(e){showToast("❌ Errore eliminazione");}
-  pendingDeleteId=null;
-  closeCli();
+  const id=pendingDeleteId;pendingDeleteId=null;
+  callScript(SCRIPT_URL+"?action=delete&row="+id);
+  records=records.filter(r=>r.id!==id);
+  closeCli();updateKPIs();renderTab();
+  showToast("✅ Riga eliminata");
 }
 
 // MODIFICA
@@ -601,7 +605,7 @@ function openEdit(id) {
     else if(type==="textarea") html+=`<textarea style="${stl};resize:vertical;min-height:56px" id="ef-${key}">${esc(val)}</textarea>`;
     else if(type==="date") {
       const d = normalizeDate(val);
-      const iso = d ? `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}` : "";
+      const iso = d ? d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0") : "";
       html+=`<input type="date" style="${stl}" id="ef-${key}" value="${iso}">`;
     }
     else if(type==="number") html+=`<input type="number" step="0.01" style="${stl}" id="ef-${key}" value="${val}">`;
@@ -642,6 +646,38 @@ async function saveEdit() {
   const undoUrl = SCRIPT_URL + "?action=edit&row=" + rowId + "&campi=" + encodeURIComponent(JSON.stringify(campiOld));
   callScript(url);
   showUndo("✅ Salvato!", undoUrl);
+}
+
+// ── DOPPIO TAP ────────────────────────────────────────────────────────────────
+const _tapState={};
+function _tap(btnId,iconOrig,cb){
+  const btn=document.getElementById(btnId);
+  if(_tapState[btnId]){
+    clearTimeout(_tapState[btnId]);delete _tapState[btnId];
+    if(btn)btn.textContent=iconOrig;cb();
+  }else{
+    if(btn)btn.textContent="❓";
+    _tapState[btnId]=setTimeout(()=>{delete _tapState[btnId];if(btn)btn.textContent=iconOrig;},2000);
+  }
+}
+function tapDel(id){_tap("dbtn-"+id,"🗑",()=>askDelete(id,records.find(x=>x.id===id)?.contraente||""));}
+function tapEdit(id){_tap("ebtn-"+id,"✏️",()=>openEdit(id));}
+function tapCal(id){_tap("cbtn-"+id,"📅",()=>prorogaRecord(id,"cbtn-"+id));}
+function tapCalCli(id){_tap("ccbtn-"+id,"📅",()=>prorogaRecord(id,"ccbtn-"+id));}
+
+function prorogaRecord(id){
+  const r=records.find(x=>x.id===id);if(!r)return;
+  const dScad=normalizeDate(r.scad);if(!dScad)return;
+  dScad.setFullYear(dScad.getFullYear()+1);
+  const newDMY=String(dScad.getDate()).padStart(2,"0")+"/"+String(dScad.getMonth()+1).padStart(2,"0")+"/"+dScad.getFullYear();
+  const campi={[COL_MAP.scad]:newDMY,[COL_MAP.todo]:newDMY};
+  const campiOld={[COL_MAP.scad]:r.scad,[COL_MAP.todo]:r.todo};
+  r.scad=newDMY;r.todo=newDMY;
+  updateKPIs();renderTab();
+  const url=SCRIPT_URL+"?action=edit&row="+id+"&campi="+encodeURIComponent(JSON.stringify(campi));
+  const undoUrl=SCRIPT_URL+"?action=edit&row="+id+"&campi="+encodeURIComponent(JSON.stringify(campiOld));
+  callScript(url);
+  showUndo("📅 Spostata +1 anno",undoUrl);
 }
 
 // Chiama lo script tramite iframe invisibile — bypassa CORS e redirect
