@@ -100,7 +100,7 @@ input::placeholder{color:#334155}select option{background:#111e3a;color:#e2e8f0}
           <div class="kpi k-grn"><div class="kpi-v v-grn" id="k-att">0</div><div class="kpi-l">Attive</div></div>
           <div class="kpi k-blu"><div class="kpi-v v-blu" id="k-tot">0</div><div class="kpi-l">Tot</div></div>
         </div>
-        <button class="refresh-btn" onclick="doRefresh(true)" style="font-size:18px;padding:6px 12px;line-height:1">↻</button>
+        <button class="refresh-btn" onclick="doRefresh()" style="font-size:18px;padding:6px 12px;line-height:1">↻</button>
       </div>
     </div>
     <div style="display:flex;align-items:center;justify-content:space-between"><div class="tabs" style="flex:1">
@@ -159,21 +159,9 @@ input::placeholder{color:#334155}select option{background:#111e3a;color:#e2e8f0}
 const CSV_URL = "https://docs.google.com/spreadsheets/d/1eptc1n6yyUfgKrqpppQtuYn7VDCE5CddSMHKf1Sj6hs/export?format=csv&gid=59454588";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzCeGfHs9fLXgwn0nTxX_28ncuJSKDjzqz0lpLahbdflGlo0K7uJDJUy4t-J1zuy7k26w/exec";
 const CSV_COLS = ["contraente","ramo","polizza","scad","todo","importo","rinn","fr","settore","stato","targa","settori","nota1","nota2","capo","rami","indirizzo","citta","cell","email","tipolCli","sub","cf"];
-const SETTORI = ["RCA","INFORTUNI","RCG","RDP","RDO","RGG","FURTO","FUR","ARRETRATO","SCREENING","#SALUTE","IRO","IMP","INC","INF","VITA","VITA INDIVIDUALI","VITA-FONDI","TCM","CASA","CAT NAT","CAUZIONI","CAUZIONE","TRASPORTI","FAMIGLIA","DOC","MAL","MALATTIE","CVT","TOP","VARI","PROVV"];
-const STATI = ["ATTIVA","PROSPETTIVA","OPPORTUNITA'","RECUPERO","ARRETRATO","SOSPESA","DOCUMENTI","LISTE","PREV RCA URG","BPER","SENZA SPER","SINISTRO","SCAD","RIFORMA","BDA","CAT NAT","TELEFONARE","PASSARE","RISCONTRO","APPUNTAMENTO","EMAIL","PREVENTIVO"];
-const STATO_COL = {ATTIVA:"#10b981",PROSPETTIVA:"#a78bfa",RECUPERO:"#f59e0b",ARRETRATO:"#f97316",SOSPESA:"#6b7280",DOCUMENTI:"#06b6d4",BDA:"#8b5cf6",TELEFONARE:"#0d9488",PASSARE:"#0891b2",RISCONTRO:"#7c3aed",APPUNTAMENTO:"#ca8a04",EMAIL:"#2563eb",PREVENTIVO:"#9d6d2e"};
-
-// Agenda — config per tipo
-const AGENDA_TIPI = {
-  TELEFONARE:   {emoji:"📞", color:"#0d9488"},
-  PASSARE:      {emoji:"🚶", color:"#0891b2"},
-  RISCONTRO:    {emoji:"🔄", color:"#7c3aed"},
-  APPUNTAMENTO: {emoji:"📅", color:"#ca8a04"},
-  EMAIL:        {emoji:"✉️",  color:"#2563eb"},
-  PREVENTIVO:   {emoji:"📋", color:"#9d6d2e"},
-};
-const isAgenda = r => !!(AGENDA_TIPI[(r.stato||"").toUpperCase()]);
-
+const SETTORI = ["RCA","INFORTUNI","RCG","RDP","FURTO","ARRETRATO","SCREENING","#SALUTE","IRO","IMP","INF","VITA","VITA INDIVIDUALI","VITA-FONDI","TCM","CASA","CAT NAT","CAUZIONI","TRASPORTI","FAMIGLIA","DOC","MAL","MALATTIE","CVT","TOP","VARI","PROVV"];
+const STATI = ["ATTIVA","SCHEDA","PROSPETTIVA","RECUPERO","ARRETRATO","SOSPESA","DOCUMENTI","LISTE","PREV RCA URG","BPER","SENZA SPER","SINISTRO","SCAD","RIFORMA","BDA","CAT NAT"];
+const STATO_COL = {ATTIVA:"#10b981",SCHEDA:"#3b82f6",PROSPETTIVA:"#a78bfa",RECUPERO:"#f59e0b",ARRETRATO:"#f97316",SOSPESA:"#6b7280",DOCUMENTI:"#06b6d4",BDA:"#8b5cf6"};
 
 const sCol = s => STATO_COL[s] || "#6b7280";
 const isArr = r => (r.stato||"").toUpperCase()==="ARRETRATO";
@@ -231,7 +219,6 @@ function parseCSV(text) {
 }
 
 let records=[], curTab="lista", searchQ="", filtriSett=[], filtriStato=[], filtriRamo=[], sortField="todo", sortDir="asc", pendingDeleteId=null;
-let _localDirty=false; // true quando ci sono modifiche locali non ancora confermate da Sheets
 
 // Rami disponibili estratti dai dati
 function getRami() {
@@ -272,24 +259,13 @@ function finish() {
   updateKPIs(); renderTab();
 }
 
-function freshUrl(){return CSV_URL+"&t="+Date.now();}
-async function doRefresh(force=false) {
+async function doRefresh() {
   document.getElementById("src-lbl").textContent="↻ …";
   try {
-    const res=await fetch(freshUrl(),{cache:"no-store"});
+    const res=await fetch(CSV_URL,{cache:"no-cache"});
     if(!res.ok) throw new Error();
     const data=parseCSV(await res.text());
-    if(data.length>0){
-      if(force||!_localDirty){
-        records=data;_localDirty=false;
-        document.getElementById("src-lbl").textContent="● Sheets · "+data.length+" righe";
-        updateKPIs();renderTab();showToast("✅ Aggiornato");
-      } else {
-        // Ci sono modifiche locali — non sovrascrivere, aggiorna solo il contatore
-        document.getElementById("src-lbl").textContent="● "+records.length+" righe (locale)";
-        showToast("✅ Sheets aggiornato");
-      }
-    }
+    if(data.length>0){records=data;document.getElementById("src-lbl").textContent="● Sheets · "+data.length+" righe";updateKPIs();renderTab();showToast("✅ Aggiornato");}
   } catch(e){showToast("⚠ Non raggiungibile");document.getElementById("src-lbl").textContent="● "+records.length+" righe (cache)";}
 }
 
@@ -317,40 +293,7 @@ function renderTab() {
 
 function cardHtml(r) {
   const arr=isArr(r);
-  const agenda=isAgenda(r);
   const imp_flag=(r.settore||"").toUpperCase()==="IMP";
-
-  // CARD AGENDA
-  if (agenda) {
-    const tipo = AGENDA_TIPI[(r.stato||"").toUpperCase()];
-    const scadD=r.scad?fmtFull(r.scad):"—";
-    const todoD=r.todo?fmtFull(r.todo):"—";
-    const nota = (r.nota1||"") + (r.nota1&&r.nota2?"\n":"") + (r.nota2||"");
-    const isTel = (r.stato||"").toUpperCase()==="TELEFONARE";
-    const emojiStyle = isTel ? "color:#ef4444" : "";
-    return `<div class="card" style="background:rgba(13,148,136,.12);border:1.5px solid rgba(13,148,136,.35);border-left:4px solid ${tipo.color}">
-      <div class="card-l">
-        <div class="card-name" onclick="openCli('${esc(r.contraente)}')">${esc(r.contraente||"—")}</div>
-        <div class="card-tags" style="margin-top:5px">
-          <span style="font-size:11px;font-weight:900;color:#fde047;background:${tipo.color}33;border:1px solid ${tipo.color}55;border-radius:6px;padding:3px 8px;display:inline-flex;align-items:center;gap:4px"><span>${tipo.emoji}</span><span>${esc(r.stato)}</span></span>
-        </div>
-        ${nota?`<div style="font-size:10px;color:#fde047;margin-top:5px;white-space:pre-wrap;line-height:1.5;word-break:break-word;font-weight:600">📝 ${esc(nota)}</div>`:""}
-      </div>
-      <div class="card-r" style="text-align:right;flex-shrink:0">
-        <div style="font-size:9px;color:#f1f5f9;font-weight:700;text-transform:uppercase;margin-bottom:1px">SCAD</div>
-        <div style="font-size:14px;font-weight:900;color:#38bdf8">${scadD}</div>
-        <div style="font-size:9px;color:#f1f5f9;font-weight:700;text-transform:uppercase;margin-top:4px;margin-bottom:1px">TODO</div>
-        <div style="font-size:14px;font-weight:900;color:#fde047">${todoD}</div>
-        <div style="margin-top:6px;display:flex;gap:8px;justify-content:flex-end">
-          <span style="display:inline-block;width:29px"></span>
-          <button id="dbtn-${r.id}" onclick="cardDel(${r.id})" style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);border-radius:6px;padding:4px 6px;color:#fca5a5;font-size:13px;cursor:pointer;line-height:1">🗑</button>
-          <button id="ebtn-${r.id}" onclick="cardEdit(${r.id})" style="background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.25);border-radius:6px;padding:4px 6px;color:#93c5fd;font-size:13px;cursor:pointer;line-height:1">✏️</button>
-        </div>
-      </div>
-    </div>`;
-  }
-
-  // CARD NORMALE
   const impB=imp_flag?'<span style="font-size:13px;margin-right:3px">🔥</span>':"";
   const statoB=statoBadge(r.stato);
   const imp=r.importo?`<span style="font-size:10px;font-weight:700;color:#cbd5e1;padding:3px 7px;background:rgba(255,255,255,.08);border-radius:4px">€${parseFloat(r.importo).toLocaleString("it-IT")}</span>`:"";
@@ -372,15 +315,10 @@ function cardHtml(r) {
       ${nota1}${nota2}
     </div>
     <div class="card-r" style="text-align:right;flex-shrink:0">
-      <div style="font-size:9px;color:#f1f5f9;font-weight:700;text-transform:uppercase;margin-bottom:1px">SCAD</div>
+      <div style="font-size:9px;color:#64748b;font-weight:700;text-transform:uppercase;margin-bottom:1px">SCAD</div>
       <div style="font-size:14px;font-weight:900;color:#38bdf8;letter-spacing:.02em">${scadD}</div>
-      <div style="font-size:9px;color:#f1f5f9;font-weight:700;text-transform:uppercase;margin-top:4px;margin-bottom:1px">TODO</div>
-      <div style="font-size:14px;font-weight:900;color:#fde047">${todoD}</div>
-      <div style="margin-top:6px;display:flex;gap:8px;justify-content:flex-end">
-
-        <button id="dbtn-${r.id}" onclick="cardDel(${r.id})" style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);border-radius:6px;padding:4px 6px;color:#fca5a5;font-size:13px;cursor:pointer;line-height:1">🗑</button>
-        <button id="ebtn-${r.id}" onclick="cardEdit(${r.id})" style="background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.25);border-radius:6px;padding:4px 6px;color:#93c5fd;font-size:13px;cursor:pointer;line-height:1">✏️</button>
-      </div>
+      <div style="font-size:9px;color:#64748b;font-weight:700;text-transform:uppercase;margin-top:4px;margin-bottom:1px">TODO</div>
+      <div style="font-size:12px;font-weight:700;color:#94a3b8">${todoD}</div>
     </div>
   </div>`;
 }
@@ -577,7 +515,7 @@ function openCli(nome) {
           ${statoBadge(r.stato,true)}
           ${scadenzaAlert(r)}
         </div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+        <div style="display:flex;gap:6px">
           <button class="btn-p" style="padding:6px 12px;font-size:11px" onclick="openEdit(${r.id})">✏️ Modifica</button>
           <button class="del-btn" style="padding:6px 10px;font-size:11px" onclick="askDelete(${r.id},'${esc(r.contraente)}')">🗑</button>
         </div>
@@ -604,15 +542,14 @@ function cancelDelete(){document.getElementById("confirm-box").style.display="no
 async function confirmDelete(){
   document.getElementById("confirm-box").style.display="none";
   if(!pendingDeleteId)return;
-  const url = SCRIPT_URL + "?action=delete&row=" + pendingDeleteId;
-  callScript(url);
-  // Rimuovi subito da memoria e ridisegna
-  records = records.filter(r=>r.id!==pendingDeleteId);
-  _localDirty=true;
+  try{
+    const url = SCRIPT_URL + "?action=delete&row=" + pendingDeleteId;
+    callScript(url);
+    showToast("✅ Riga eliminata");
+    setTimeout(()=>doRefresh(),1500);
+  }catch(e){showToast("❌ Errore eliminazione");}
   pendingDeleteId=null;
   closeCli();
-  updateKPIs(); renderTab();
-  showToast("✅ Riga eliminata");
 }
 
 // MODIFICA
@@ -623,7 +560,7 @@ const CAMPI_EDIT = [
   {key:"polizza",label:"N° Polizza",type:"text"},
   {key:"scad",label:"SCAD",type:"date"},
   {key:"todo",label:"TO-DO",type:"date"},
-  {key:"importo",label:"Imponibile (€)",type:"number"},
+  {key:"importo",label:"Importo (€)",type:"number"},
   {key:"rinn",label:"Rinnovo",type:"select",opts:["","S","N"]},
   {key:"fr",label:"FR",type:"text"},
   {key:"settore",label:"Settore",type:"select",opts:SETTORI},
@@ -643,7 +580,6 @@ const CAMPI_EDIT = [
   {key:"cf",label:"CF/Conv",type:"text"},
 ];
 let curEditId = null;
-let _editDates = {};
 
 function openEdit(id) {
   const r = records.find(x=>x.id===id); if(!r) return;
@@ -660,12 +596,9 @@ function openEdit(id) {
     if(type==="select") html+=`<select style="${stl}" id="ef-${key}"><option value=""></option>${opts.map(o=>`<option value="${esc(o)}"${o===val?" selected":""}>${esc(o)||"—"}</option>`).join("")}</select>`;
     else if(type==="textarea") html+=`<textarea style="${stl};resize:vertical;min-height:56px" id="ef-${key}">${esc(val)}</textarea>`;
     else if(type==="date") {
-      const iso = toISO(val);
-      if(key==="scad") {
-        html+=`<div style="display:flex;gap:6px;align-items:center"><input type="date" style="${stl};flex:1" id="ef-${key}" value="${iso}"><button type="button" onclick="applicaProrogaEdit()" style="background:rgba(234,179,8,.15);border:1px solid rgba(234,179,8,.35);border-radius:7px;padding:8px 10px;color:#fde047;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0">📅+1</button></div>`;
-      } else {
-        html+=`<input type="date" style="${stl}" id="ef-${key}" value="${iso}">`;
-      }
+      const d = normalizeDate(val);
+      const iso = d ? `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}` : "";
+      html+=`<input type="date" style="${stl}" id="ef-${key}" value="${iso}">`;
     }
     else if(type==="number") html+=`<input type="number" step="0.01" style="${stl}" id="ef-${key}" value="${val}">`;
     else html+=`<input type="text" style="${stl}" id="ef-${key}" value="${esc(val)}" placeholder="${ph||""}">`;
@@ -673,104 +606,39 @@ function openEdit(id) {
   });
   html += "</div>";
   document.getElementById("edit-body").innerHTML = html;
-  // Safari fix: cattura le date via evento change invece di leggere el.value al salvataggio
-  _editDates = {};
-  ["scad","todo"].forEach(key => {
-    const el = document.getElementById("ef-"+key);
-    if(el) {
-      _editDates[key] = el.value; // valore ISO iniziale
-      el.addEventListener("change", function(){ _editDates[key] = this.value; });
-    }
-  });
   document.getElementById("edit-ov").style.display = "flex";
 }
 
-
-function applicaProrogaEdit(){
-  const scadEl=document.getElementById("ef-scad");
-  if(!scadEl||!scadEl.value)return;
-  const raw=_editDates["scad"]||scadEl.value;
-  const d=normalizeDate(raw);
-  if(!d)return;
-  d.setFullYear(d.getFullYear()+1);
-  const iso=toISO(d.toISOString().slice(0,10));
-  scadEl.value=iso;_editDates["scad"]=iso;
-  const todoEl=document.getElementById("ef-todo");
-  if(todoEl){todoEl.value=iso;_editDates["todo"]=iso;}
-}
 function closeEdit() { document.getElementById("edit-ov").style.display="none"; curEditId=null; }
-
-
-function dmyNorm(s){
-  const d=normalizeDate(s);
-  if(!d)return"";
-  return String(d.getDate()).padStart(2,"0")+"/"+String(d.getMonth()+1).padStart(2,"0")+"/"+d.getFullYear();
-}
-function toISO(s){
-  const d=normalizeDate(s);
-  if(!d)return"";
-  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
-}
 
 async function saveEdit() {
   const r = records.find(x=>x.id===curEditId); if(!r) return;
   const campi = {}, campiOld = {};
   CAMPI_EDIT.forEach(({key,type})=>{
     const el = document.getElementById("ef-"+key); if(!el) return;
-    // Per le date: usa _editDates (aggiornato via evento change su Safari)
-    // Per gli altri campi: leggi el.value normalmente
-    let nv;
-    if(type==="date"){
-      const iso = (key in _editDates) ? _editDates[key] : el.value;
-      nv = iso ? dmyNorm(iso) : "";
-    } else {
-      nv = el.value.trim();
+    let nv = el.value.trim();
+    if(type==="date" && nv && /^\d{4}-\d{2}-\d{2}$/.test(nv)) {
+      const [y,m,d] = nv.split("-"); nv = d+"/"+m+"/"+y;
     }
     const ov = String(r[key]||"").trim();
-    const ovNorm = type==="date" ? dmyNorm(ov) : ov;
-    if(nv !== ovNorm && COL_MAP[key]) { campi[COL_MAP[key]]=nv; campiOld[COL_MAP[key]]=ov; }
+    const ovNorm = type==="date" ? (()=>{const dd=normalizeDate(ov);return dd?String(dd.getDate()).padStart(2,"0")+"/"+String(dd.getMonth()+1).padStart(2,"0")+"/"+dd.getFullYear():ov;})() : ov;
+    if(nv!==ovNorm && COL_MAP[key]) { campi[COL_MAP[key]]=nv; campiOld[COL_MAP[key]]=ov; }
   });
   if(Object.keys(campi).length===0){showToast("Nessuna modifica");closeEdit();return;}
   const rowId = curEditId;
-  // Aggiorna records in memoria con i valori già calcolati in campi
+  // Aggiorna records in memoria immediatamente
   Object.entries(campi).forEach(([col,val])=>{
     const key = Object.keys(COL_MAP).find(k=>COL_MAP[k]===parseInt(col));
     if(!key) return;
     if(key==="importo") r[key] = val ? parseFloat(val)||null : null;
     else r[key] = val;
   });
-  _localDirty=true;
   closeEdit(); closeCli();
   updateKPIs(); renderTab();
   const url = SCRIPT_URL + "?action=edit&row=" + rowId + "&campi=" + encodeURIComponent(JSON.stringify(campi));
   const undoUrl = SCRIPT_URL + "?action=edit&row=" + rowId + "&campi=" + encodeURIComponent(JSON.stringify(campiOld));
   callScript(url);
   showUndo("✅ Salvato!", undoUrl);
-}
-
-const _pending={};
-function _tap(id,prefix,icon,action){
-  const btn=document.getElementById(prefix+id);
-  const key=prefix+id;
-  if(_pending[key]){
-    clearTimeout(_pending[key]);
-    delete _pending[key];
-    if(btn)btn.textContent=icon;
-    action();
-  } else {
-    if(btn)btn.textContent="❓";
-    _pending[key]=setTimeout(()=>{delete _pending[key];if(btn)btn.textContent=icon;},2000);
-  }
-}
-
-function cardDel(id){
-  _tap(id,"dbtn-","🗑",()=>{
-    const r=records.find(x=>x.id===id);
-    askDelete(id,r?r.contraente:"");
-  });
-}
-function cardEdit(id){
-  _tap(id,"ebtn-","✏️",()=>{openEdit(id);});
 }
 
 // Chiama lo script tramite iframe invisibile — bypassa CORS e redirect
@@ -792,7 +660,7 @@ const CAMPI_NUOVA = [
   {key:"polizza",label:"N° Polizza",type:"text"},
   {key:"scad",label:"SCAD",type:"date"},
   {key:"todo",label:"TO-DO",type:"date"},
-  {key:"importo",label:"Imponibile (€)",type:"number"},
+  {key:"importo",label:"Importo (€)",type:"number"},
   {key:"rinn",label:"Rinnovo",type:"select",opts:["","S","N"]},
   {key:"fr",label:"FR",type:"text"},
   {key:"settore",label:"Settore",type:"select",opts:SETTORI},
@@ -846,19 +714,11 @@ function saveNuova() {
   });
   
   closeNuova();
+  showToast("💾 Inserimento…");
   const url = SCRIPT_URL + "?action=insert&valori=" + encodeURIComponent(JSON.stringify(valori));
   callScript(url);
-  showToast("💾 Inserimento in corso…");
-  // Aggiunge record provvisorio in memoria per feedback immediato
-  const newId = Date.now();
-  const keys2 = ["contraente","ramo","polizza","scad","todo","importo","rinn","fr","settore","stato","targa","settori","nota1","nota2","capo","rami","indirizzo","citta","cell","email","tipolCli","sub","cf"];
-  const newR = {id: newId};
-  keys2.forEach((k,i)=>{ newR[k] = valori[i]||""; });
-  newR.importo = newR.importo ? parseFloat(newR.importo)||null : null;
-  records.unshift(newR);
-  updateKPIs(); renderTab();
-  // Dopo 6 secondi sincronizza da Sheets (che ora avrà l'id reale)
-  setTimeout(()=>{ showToast("✅ Riga inserita!"); doRefresh(); }, 6000);
+  showToast("✅ Riga inserita!");
+  setTimeout(()=>doRefresh(), 2000);
 }
 
 let toastT;
@@ -875,9 +735,8 @@ function showUndo(msg,invertUrl){
 function doUndo(){
   if(!lastUndo)return;
   callScript(lastUndo.url);
-  _localDirty=false;
   showToast("↩ Annullato");lastUndo=null;
-  setTimeout(()=>doRefresh(true),4000);
+  setTimeout(()=>doRefresh(),2000);
 }
 
 function showToast(msg){
