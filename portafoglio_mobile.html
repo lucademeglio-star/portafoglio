@@ -264,6 +264,8 @@ function finish() {
   document.getElementById("loading").style.display="none";
   document.getElementById("app").style.display="flex";
   updateKPIs(); renderTab();
+  // Polling automatico ogni 5 secondi
+  setInterval(()=>refreshSilent(), 5000);
 }
 
 async function doRefresh() {
@@ -717,14 +719,7 @@ function prorogaRecord(id){
 
 // Chiama lo script tramite iframe invisibile — bypassa CORS e redirect
 function callScript(url) {
-  let iframe = document.getElementById("script-iframe");
-  if(!iframe) {
-    iframe = document.createElement("iframe");
-    iframe.id = "script-iframe";
-    iframe.style.display = "none";
-    document.body.appendChild(iframe);
-  }
-  iframe.src = url;
+  fetch(url, {method:"GET", mode:"no-cors"}).catch(()=>{});
 }
 
 // NUOVA RIGA
