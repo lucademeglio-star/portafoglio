@@ -618,8 +618,10 @@ async function saveEdit() {
     const ov = String(r[key]||"").trim();
     if(nv!==ov && COL_MAP[key]) { campi[COL_MAP[key]]=nv; campiOld[COL_MAP[key]]=ov; }
   });
-  if(Object.keys(campi).length===0){showToast("Nessuna modifica — scad:"+String(r.scad)+" campo:"+String(document.getElementById("ef-scad")?document.getElementById("ef-scad").value:"?"));closeEdit();return;}
-  showToast("CAMPI: "+JSON.stringify(campi).slice(0,80));
+  const dbg = document.getElementById("debug-box");
+  const scadEl = document.getElementById("ef-scad");
+  if(dbg) dbg.innerHTML = "scad_campo=" + (scadEl?scadEl.value:"?") + "<br>scad_record=" + r.scad + "<br>campi=" + JSON.stringify(campi);
+  if(Object.keys(campi).length===0){showToast("Nessuna modifica");closeEdit();return;}
   const rowId = curEditId;
   // Aggiorna memoria immediatamente
   Object.entries(campi).forEach(([col,val])=>{
@@ -744,5 +746,6 @@ function showToast(msg){
 
 loadData();
 </script>
+<div id="debug-box" style="position:fixed;bottom:0;left:0;right:0;background:#1e3a5f;color:#93c5fd;font-size:10px;padding:6px 10px;z-index:9999;word-break:break-all;min-height:30px">debug...</div>
 </body>
 </html>
