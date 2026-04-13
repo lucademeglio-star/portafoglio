@@ -598,7 +598,6 @@ async function confirmDelete(){
   records=records.filter(r=>r.id!==id);
   closeCli();updateKPIs();renderTab();
   showToast("✅ Riga eliminata");
-  setTimeout(()=>refreshSilent(), 3000);
 }
 
 // MODIFICA
@@ -694,7 +693,6 @@ async function saveEdit() {
   const undoUrl = SCRIPT_URL + "?action=edit&row=" + rowId + "&campi=" + encodeURIComponent(JSON.stringify(campiOld));
   callScript(url);
   showUndo("✅ Salvato!", undoUrl);
-  setTimeout(()=>refreshSilent(), 3000);
 }
 
 // ── DOPPIO TAP ────────────────────────────────────────────────────────────────
@@ -730,7 +728,6 @@ function prorogaRecord(id){
   const undoUrl=SCRIPT_URL+"?action=edit&row="+id+"&campi="+encodeURIComponent(JSON.stringify(campiOld));
   callScript(url);
   showUndo("📅 Spostata +1 anno",undoUrl);
-  setTimeout(()=>refreshSilent(), 3000);
 }
 
 // Chiama lo script tramite iframe invisibile — bypassa CORS e redirect
