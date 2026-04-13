@@ -674,6 +674,8 @@ async function saveEdit() {
   });
   if(Object.keys(campi).length===0){showToast("Nessuna modifica");closeEdit();return;}
   const rowId = curEditId;
+  // DEBUG: mostra cosa viene salvato
+  showToast("DEBUG row="+rowId+" campi="+JSON.stringify(campi).slice(0,80), 8000);
   // Aggiorna memoria immediatamente
   const sk=stableKey(r);
   if(!_localChanges[sk]) _localChanges[sk]={};
