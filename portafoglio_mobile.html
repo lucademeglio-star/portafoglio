@@ -672,10 +672,13 @@ async function saveEdit() {
     const ovNorm = type==="date" ? (()=>{const dd=normalizeDate(ov);return dd?String(dd.getDate()).padStart(2,"0")+"/"+String(dd.getMonth()+1).padStart(2,"0")+"/"+dd.getFullYear():ov;})() : ov;
     if(nv!==ovNorm && COL_MAP[key]) { campi[COL_MAP[key]]=nv; campiOld[COL_MAP[key]]=ov; }
   });
-  if(Object.keys(campi).length===0){showToast("Nessuna modifica");closeEdit();return;}
+  // DEBUG dettagliato
+  const todoEl=document.getElementById("ef-todo");
+  const scadEl=document.getElementById("ef-scad");
+  const debugMsg="todo_raw="+JSON.stringify(todoEl?todoEl.value:"?")+" scad_raw="+JSON.stringify(scadEl?scadEl.value:"?")+" campi_keys="+JSON.stringify(Object.keys(campi));
+  showToast(debugMsg, 10000);
+  if(Object.keys(campi).length===0){closeEdit();return;}
   const rowId = curEditId;
-  // DEBUG: mostra cosa viene salvato
-  showToast("DEBUG row="+rowId+" campi="+JSON.stringify(campi).slice(0,80), 8000);
   // Aggiorna memoria immediatamente
   const sk=stableKey(r);
   if(!_localChanges[sk]) _localChanges[sk]={};
